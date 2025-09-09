@@ -13,25 +13,27 @@ void main() {
 
   testWidgets('WheelDateChoice renders 3 wheels (DMY)', (tester) async {
     DateTime? changed;
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('en', 'US'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en', 'US')],
-      home: Scaffold(
-        body: Center(
-          child: WheelDateChoice(
-            value: DateTime(2024, 2, 10),
-            order: WheelDateOrder.dmy,
-            itemLabel: WheelDateLabel.pattern(locale: 'en_US'),
-            onChanged: (d) => changed = d,
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en', 'US'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en', 'US')],
+        home: Scaffold(
+          body: Center(
+            child: WheelDateChoice(
+              value: DateTime(2024, 2, 10),
+              order: WheelDateOrder.dmy,
+              itemLabel: WheelDateLabel.pattern(locale: 'en_US'),
+              onChanged: (d) => changed = d,
+            ),
           ),
         ),
       ),
-    ));
+    );
 
     // Should render three WheelChoice<int> columns
     final wheelFinder = find.byWidgetPredicate((w) => w is WheelChoice<int>);

@@ -33,8 +33,7 @@ class WheelDateOrder {
 
     // Sort the keys based on their index in the pattern
     // So the component with the lowest index comes first
-    final sorted = [...keys]
-      ..sort((a, b) => pos(a).compareTo(pos(b)));
+    final sorted = [...keys]..sort((a, b) => pos(a).compareTo(pos(b)));
 
     return WheelDateOrder((pickers) {
       // Expecting exactly 3 pickers: [dayPicker, monthPicker, yearPicker]

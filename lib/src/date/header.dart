@@ -16,15 +16,19 @@ class WheelDateHeader extends WheelHeader {
 
   /// Header used above the day column.
   final WheelHeader day;
+
   /// Header used above the month column.
   final WheelHeader month;
+
   /// Header used above the year column.
   final WheelHeader year;
 
   /// Returns [day] with defaults inherited from this header.
   WheelHeader get dayX => asDefaultFor(day);
+
   /// Returns [month] with defaults inherited from this header.
   WheelHeader get monthX => asDefaultFor(month);
+
   /// Returns [year] with defaults inherited from this header.
   WheelHeader get yearX => asDefaultFor(year);
 }

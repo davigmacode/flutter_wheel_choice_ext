@@ -32,68 +32,90 @@ void main() {
     final month = const SizedBox(key: ValueKey('M'));
     final year = const SizedBox(key: ValueKey('Y'));
 
-    expect(WheelDateOrder.dmy.callback([day, month, year]).map((w) => (w.key as ValueKey).value),
-        ['D', 'M', 'Y']);
-    expect(WheelDateOrder.mdy.callback([day, month, year]).map((w) => (w.key as ValueKey).value),
-        ['M', 'D', 'Y']);
-    expect(WheelDateOrder.ymd.callback([day, month, year]).map((w) => (w.key as ValueKey).value),
-        ['Y', 'M', 'D']);
-    expect(WheelDateOrder.ydm.callback([day, month, year]).map((w) => (w.key as ValueKey).value),
-        ['Y', 'D', 'M']);
+    expect(
+      WheelDateOrder.dmy
+          .callback([day, month, year])
+          .map((w) => (w.key as ValueKey).value),
+      ['D', 'M', 'Y'],
+    );
+    expect(
+      WheelDateOrder.mdy
+          .callback([day, month, year])
+          .map((w) => (w.key as ValueKey).value),
+      ['M', 'D', 'Y'],
+    );
+    expect(
+      WheelDateOrder.ymd
+          .callback([day, month, year])
+          .map((w) => (w.key as ValueKey).value),
+      ['Y', 'M', 'D'],
+    );
+    expect(
+      WheelDateOrder.ydm
+          .callback([day, month, year])
+          .map((w) => (w.key as ValueKey).value),
+      ['Y', 'D', 'M'],
+    );
   });
   testWidgets('WheelDateOrder.of uses MDY for en_US', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('en', 'US'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('id', 'ID'),
-        Locale('ja', 'JP'),
-      ],
-      home: Builder(builder: _buildOrderedRow),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en', 'US'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('id', 'ID'),
+          Locale('ja', 'JP'),
+        ],
+        home: Builder(builder: _buildOrderedRow),
+      ),
+    );
     final keys = _keysFromRow(tester);
     expect(keys, ['M', 'D', 'Y']);
   });
 
   testWidgets('WheelDateOrder.of uses DMY for id', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('id'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('id'),
-        Locale('ja'),
-      ],
-      home: Builder(builder: _buildOrderedRow),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('id'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('id'),
+          Locale('ja'),
+        ],
+        home: Builder(builder: _buildOrderedRow),
+      ),
+    );
     final keys = _keysFromRow(tester);
     expect(keys, ['D', 'M', 'Y']);
   });
 
   testWidgets('WheelDateOrder.of uses YMD for ja', (tester) async {
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('ja'),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-        Locale('id'),
-        Locale('ja'),
-      ],
-      home: Builder(builder: _buildOrderedRow),
-    ));
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ja'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('id'),
+          Locale('ja'),
+        ],
+        home: Builder(builder: _buildOrderedRow),
+      ),
+    );
     final keys = _keysFromRow(tester);
     expect(keys, ['Y', 'M', 'D']);
   });

@@ -47,8 +47,10 @@ class WheelDateLabel {
 
   /// Label for day values.
   final WheelItemLabel<int>? day;
+
   /// Label for month values.
   final WheelItemLabel<int>? month;
+
   /// Label for year values.
   final WheelItemLabel<int>? year;
 

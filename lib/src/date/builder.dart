@@ -13,8 +13,10 @@ class WheelDateBuilder {
 
   /// Builder for each day option.
   final WheelItemBuilder<int>? day;
+
   /// Builder for each month option.
   final WheelItemBuilder<int>? month;
+
   /// Builder for each year option.
   final WheelItemBuilder<int>? year;
 

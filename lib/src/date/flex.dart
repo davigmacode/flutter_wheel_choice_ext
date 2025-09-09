@@ -9,8 +9,10 @@ class WheelDateFlex {
 
   /// Flex factor for day column.
   final int day;
+
   /// Flex factor for month column.
   final int month;
+
   /// Flex factor for year column.
   final int year;
 
