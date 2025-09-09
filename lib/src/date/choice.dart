@@ -14,7 +14,7 @@ class WheelDateChoice extends StatefulWidget {
     this.itemExtent,
     this.itemVisible,
     this.itemBuilder,
-    this.label,
+    this.itemLabel,
     this.flex,
     this.expanded,
     this.header,
@@ -33,7 +33,7 @@ class WheelDateChoice extends StatefulWidget {
   final double? itemExtent;
   final int? itemVisible;
   final WheelDateBuilder? itemBuilder;
-  final WheelDateLabel? label;
+  final WheelDateLabel? itemLabel;
   final WheelDateFlex? flex;
   final bool? expanded;
   final WheelDateHeader? header;
@@ -69,7 +69,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   List<int> get _dayOptions => List.generate(31, (i) => i + 1);
 
   WheelDateLabel get _label {
-    return widget.label ?? WheelDateLabel.of(context);
+    return widget.itemLabel ?? WheelDateLabel.of(context);
   }
 
   WheelDateFlex get _flex => widget.flex ?? WheelDateFlex();
