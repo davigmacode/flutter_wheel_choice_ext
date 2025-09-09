@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wheel_choice/wheel_choice.dart';
 import 'builder.dart';
+import 'flex.dart';
 import 'format.dart';
 import 'header.dart';
 import 'order.dart';
@@ -22,9 +23,7 @@ class WheelDateChoice extends StatefulWidget {
     this.dayFormat,
     this.monthFormat,
     this.yearFormat,
-    this.dayFlex,
-    this.monthFlex,
-    this.yearFlex,
+    this.flex,
     this.expanded,
     this.header,
     this.overlay,
@@ -51,9 +50,7 @@ class WheelDateChoice extends StatefulWidget {
   final String? dayFormat;
   final String? monthFormat;
   final String? yearFormat;
-  final int? dayFlex;
-  final int? monthFlex;
-  final int? yearFlex;
+  final WheelDateFlex? flex;
   final bool? expanded;
   final WheelDateHeader? header;
   final WidgetBuilder? overlay;
@@ -101,9 +98,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         WheelDateFormat.yearOf(context, widget.yearFormat);
   }
 
-  int get _dayFlex => widget.dayFlex ?? 3;
-  int get _monthFlex => widget.monthFlex ?? 4;
-  int get _yearFlex => widget.yearFlex ?? 4;
+  WheelDateFlex get _flex => widget.flex ?? WheelDateFlex();
 
   @override
   void initState() {
@@ -172,7 +167,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   @override
   Widget build(BuildContext context) {
     final dayPicker = Flexible(
-      flex: _dayFlex,
+      flex: _flex.day,
       child: WheelChoice<int>(
         options: _dayOptions,
         value: _selectedDay,
@@ -190,7 +185,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     );
 
     final monthPicker = Flexible(
-      flex: _monthFlex,
+      flex: _flex.month,
       child: WheelChoice<int>(
         options: _monthOptions,
         value: _selectedMonth,
@@ -208,7 +203,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     );
 
     final yearPicker = Flexible(
-      flex: _yearFlex,
+      flex: _flex.year,
       child: WheelChoice<int>(
         options: _yearOptions,
         value: _selectedYear,
