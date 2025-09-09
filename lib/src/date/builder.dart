@@ -1,9 +1,9 @@
 import 'package:wheel_choice/wheel_choice.dart';
 
 class WheelDateBuilder {
-  WheelDateBuilder({this.day, this.month, this.year});
+  const WheelDateBuilder({this.day, this.month, this.year});
 
-  WheelDateBuilder.all(WheelItemBuilder<int>? builder)
+  const WheelDateBuilder.all(WheelItemBuilder<int>? builder)
     : day = builder,
       month = builder,
       year = builder;

@@ -3,7 +3,7 @@ import 'package:wheel_choice/wheel_choice.dart';
 import 'package:intl/intl.dart';
 
 class WheelDateLabel {
-  WheelDateLabel({this.day, this.month, this.year});
+  const WheelDateLabel({this.day, this.month, this.year});
 
   factory WheelDateLabel.pattern({
     String? locale,
@@ -11,13 +11,18 @@ class WheelDateLabel {
     String? month,
     String? year,
   }) {
-    day ??= 'd';
-    month ??= 'MMMM';
-    year ??= 'y';
+    final dayPattern = day ?? 'd';
+    final monthPattern = month ?? 'MMMM';
+    final yearPattern = year ?? 'y';
+
+    final dfDay = DateFormat(dayPattern, locale);
+    final dfMonth = DateFormat(monthPattern, locale);
+    final dfYear = DateFormat(yearPattern, locale);
+
     return WheelDateLabel(
-      day: (int d) => DateFormat(day, locale).format(DateTime(0, 1, d)),
-      month: (int m) => DateFormat(month, locale).format(DateTime(0, m)),
-      year: (int y) => DateFormat(year, locale).format(DateTime(y)),
+      day: (int d) => dfDay.format(DateTime(0, 1, d)),
+      month: (int m) => dfMonth.format(DateTime(0, m)),
+      year: (int y) => dfYear.format(DateTime(y)),
     );
   }
 

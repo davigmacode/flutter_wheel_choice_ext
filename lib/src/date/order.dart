@@ -17,20 +17,19 @@ class WheelDateOrder {
     // Get the date format pattern (e.g., "M/d/y" -> "mdy")
     final pattern = DateFormat.yMd(locale).pattern?.toLowerCase() ?? 'mdy';
 
-    // Determine the index position of each component in the pattern
-    final positions = {
-      'd': pattern.indexOf('d'),
-      'm': pattern.indexOf('m'),
-      'y': pattern.indexOf('y'),
-    };
+    // Helper to map missing component index (-1) to a large value
+    int pos(String ch) {
+      final i = pattern.indexOf(ch);
+      return i < 0 ? 999 : i;
+    }
 
     // Define the keys in standard order
     final keys = ['d', 'm', 'y'];
 
     // Sort the keys based on their index in the pattern
     // So the component with the lowest index comes first
-    final sorted = keys
-      ..sort((a, b) => (positions[a] ?? 999).compareTo(positions[b] ?? 999));
+    final sorted = [...keys]
+      ..sort((a, b) => pos(a).compareTo(pos(b)));
 
     return WheelDateOrder((pickers) {
       // Expecting exactly 3 pickers: [dayPicker, monthPicker, yearPicker]

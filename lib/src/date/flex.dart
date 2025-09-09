@@ -1,11 +1,9 @@
 class WheelDateFlex {
-  WheelDateFlex({
-    int? day,
-    int? month,
-    int? year,
-  }) : day = day ?? 3,
-       month = month ?? 4,
-       year = year ?? 4;
+  const WheelDateFlex({
+    this.day = 3,
+    this.month = 4,
+    this.year = 4,
+  });
 
   final int day;
   final int month;
