@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   wheel_choice_ext:
     path: ../
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
