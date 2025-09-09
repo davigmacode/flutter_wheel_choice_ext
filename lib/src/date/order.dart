@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Signature for a function that reorders the three date picker columns
+/// and returns them in display order.
 typedef WheelDateOrderCallback = List<Widget> Function(List<Widget> pickers);
 
+/// Determines the visual order of the day, month, and year columns.
 class WheelDateOrder {
+  /// Creates a date order with a custom reordering [callback].
   const WheelDateOrder(this.callback);
 
+  /// Function that maps [pickers] into the desired order.
   final WheelDateOrderCallback callback;
 
   /// Determines the order of date components (day, month, year)
@@ -47,21 +52,25 @@ class WheelDateOrder {
     });
   }
 
+  /// Day–Month–Year order, e.g. 31/01/2025.
   static const dmy = WheelDateOrder(_dmy);
   static List<Widget> _dmy(List<Widget> pickers) => pickers;
 
+  /// Month–Day–Year order, e.g. 01/31/2025.
   static const mdy = WheelDateOrder(_mdy);
   static List<Widget> _mdy(List<Widget> pickers) {
     final [day, month, year] = pickers;
     return [month, day, year];
   }
 
+  /// Year–Month–Day order, e.g. 2025-01-31.
   static const ymd = WheelDateOrder(_ymd);
   static List<Widget> _ymd(List<Widget> pickers) {
     final [day, month, year] = pickers;
     return [year, month, day];
   }
 
+  /// Year–Day–Month order, less common.
   static const ydm = WheelDateOrder(_ydm);
   static List<Widget> _ydm(List<Widget> pickers) {
     final [day, month, year] = pickers;

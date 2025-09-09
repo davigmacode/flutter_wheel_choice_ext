@@ -2,9 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:wheel_choice/wheel_choice.dart';
 import 'package:intl/intl.dart';
 
+/// Provides label callbacks for rendering day, month, and year values.
 class WheelDateLabel {
+  /// Creates a set of optional label functions per date part.
   const WheelDateLabel({this.day, this.month, this.year});
 
+  /// Creates labels based on [intl] date patterns and optional [locale].
   factory WheelDateLabel.pattern({
     String? locale,
     String? day,
@@ -26,6 +29,7 @@ class WheelDateLabel {
     );
   }
 
+  /// Creates localized labels using the context locale and optional patterns.
   factory WheelDateLabel.of(
     BuildContext context, {
     String? day,
@@ -41,10 +45,14 @@ class WheelDateLabel {
     );
   }
 
+  /// Label for day values.
   final WheelItemLabel<int>? day;
+  /// Label for month values.
   final WheelItemLabel<int>? month;
+  /// Label for year values.
   final WheelItemLabel<int>? year;
 
+  /// Two [WheelDateLabel]s are equal when their label callbacks are the same.
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -54,6 +62,7 @@ class WheelDateLabel {
         other.year == year;
   }
 
+  /// Combines the hash codes of the three labels.
   @override
   int get hashCode => Object.hash(day, month, year);
 }

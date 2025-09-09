@@ -6,7 +6,10 @@ import 'header.dart';
 import 'label.dart';
 import 'order.dart';
 
+/// A composite wheel selector for picking a calendar date
+/// with day, month, and year columns.
 class WheelDateChoice extends StatefulWidget {
+  /// Creates a date picker wheel.
   WheelDateChoice({
     super.key,
     DateTime? value,
@@ -28,25 +31,43 @@ class WheelDateChoice extends StatefulWidget {
     this.maxYear,
   }) : value = value ?? DateTime.now();
 
+  /// Current selected date.
   final DateTime value;
+  /// Called when the user selects a new date.
   final ValueChanged<DateTime>? onChanged;
+  /// Height of each wheel item.
   final double? itemExtent;
+  /// Number of visible items in each wheel.
   final int? itemVisible;
+  /// Optional per-part custom item builders.
   final WheelDateBuilder? itemBuilder;
+  /// Optional per-part labels/formatters for values.
   final WheelDateLabel? itemLabel;
+  /// Column flex values for day/month/year.
   final WheelDateFlex? flex;
+  /// Whether the wheel columns expand to fill available width.
   final bool? expanded;
+  /// Optional header widget configuration for each column.
   final WheelDateHeader? header;
+  /// Optional overlay builder placed over the wheels.
   final WidgetBuilder? overlay;
+  /// Visual effect applied to the wheel items.
   final WheelEffect? effect;
+  /// Order of columns; defaults to locale-aware order.
   final WheelDateOrder? order;
+  /// Horizontal spacing between columns.
   final double? spacing;
+  /// Minimum allowed date for selection.
   final DateTime? minDate;
+  /// Maximum allowed date for selection.
   final DateTime? maxDate;
+  /// Minimum allowed year when selecting.
   final int? minYear;
+  /// Maximum allowed year when selecting.
   final int? maxYear;
 
   @override
+  /// Creates the mutable state for this widget.
   State<WheelDateChoice> createState() => _WheelDateChoiceState();
 }
 
