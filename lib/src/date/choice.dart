@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wheel_choice/wheel_choice.dart';
+import 'builder.dart';
 import 'format.dart';
 import 'header.dart';
 import 'order.dart';
@@ -40,7 +41,7 @@ class WheelDateChoice extends StatefulWidget {
   final ValueChanged<DateTime>? onChanged;
   final double? itemExtent;
   final int? itemVisible;
-  final WheelItemBuilder<int>? itemBuilder;
+  final WheelDateBuilder? itemBuilder;
   final WheelItemBuilder<int>? dayBuilder;
   final WheelItemBuilder<int>? monthBuilder;
   final WheelItemBuilder<int>? yearBuilder;
@@ -98,18 +99,6 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   WheelItemLabel<int> get _yearLabel {
     return widget.yearLabel ??
         WheelDateFormat.yearOf(context, widget.yearFormat);
-  }
-
-  WheelItemBuilder<int>? get _dayBuilder {
-    return widget.dayBuilder ?? widget.itemBuilder;
-  }
-
-  WheelItemBuilder<int>? get _monthBuilder {
-    return widget.monthBuilder ?? widget.itemBuilder;
-  }
-
-  WheelItemBuilder<int>? get _yearBuilder {
-    return widget.yearBuilder ?? widget.itemBuilder;
   }
 
   int get _dayFlex => widget.dayFlex ?? 3;
@@ -192,7 +181,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledDay,
         itemLabel: _dayLabel,
-        itemBuilder: _dayBuilder,
+        itemBuilder: widget.itemBuilder?.day,
         header: widget.header?.dayX,
         expanded: widget.expanded,
         effect: widget.effect,
@@ -210,7 +199,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledMonth,
         itemLabel: _monthLabel,
-        itemBuilder: _monthBuilder,
+        itemBuilder: widget.itemBuilder?.month,
         header: widget.header?.monthX,
         expanded: widget.expanded,
         effect: widget.effect,
@@ -228,7 +217,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledYear,
         itemLabel: _yearLabel,
-        itemBuilder: _yearBuilder,
+        itemBuilder: widget.itemBuilder?.year,
         header: widget.header?.yearX,
         expanded: widget.expanded,
         effect: widget.effect,
