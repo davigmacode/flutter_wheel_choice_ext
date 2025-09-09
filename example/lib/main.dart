@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:wheel_choice_ext/wheel_choice_ext.dart';
 
@@ -20,11 +21,9 @@ class _ExampleAppState extends State<ExampleApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      scrollBehavior: const _AppScrollBehavior(),
       locale: _locale,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('id'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('id')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -40,7 +39,10 @@ class _ExampleAppState extends State<ExampleApp> {
             children: [
               // Controls
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     // Locale switcher
@@ -49,10 +51,17 @@ class _ExampleAppState extends State<ExampleApp> {
                     DropdownButton<Locale>(
                       value: _locale,
                       items: const [
-                        DropdownMenuItem(value: Locale('en'), child: Text('English (en)')),
-                        DropdownMenuItem(value: Locale('id'), child: Text('Indonesia (id)')),
+                        DropdownMenuItem(
+                          value: Locale('en'),
+                          child: Text('English (en)'),
+                        ),
+                        DropdownMenuItem(
+                          value: Locale('id'),
+                          child: Text('Indonesia (id)'),
+                        ),
                       ],
-                      onChanged: (loc) => setState(() => _locale = loc ?? _locale),
+                      onChanged: (loc) =>
+                          setState(() => _locale = loc ?? _locale),
                     ),
                     const Spacer(),
                     const Text('Order:'),
@@ -61,14 +70,17 @@ class _ExampleAppState extends State<ExampleApp> {
                       value: _order == null
                           ? 'locale'
                           : (_order == WheelDateOrder.mdy
-                              ? 'mdy'
-                              : _order == WheelDateOrder.ymd
-                                  ? 'ymd'
-                                  : _order == WheelDateOrder.ydm
-                                      ? 'ydm'
-                                      : 'dmy'),
+                                ? 'mdy'
+                                : _order == WheelDateOrder.ymd
+                                ? 'ymd'
+                                : _order == WheelDateOrder.ydm
+                                ? 'ydm'
+                                : 'dmy'),
                       items: const [
-                        DropdownMenuItem(value: 'locale', child: Text('Locale-based')),
+                        DropdownMenuItem(
+                          value: 'locale',
+                          child: Text('Locale-based'),
+                        ),
                         DropdownMenuItem(value: 'dmy', child: Text('DMY')),
                         DropdownMenuItem(value: 'mdy', child: Text('MDY')),
                         DropdownMenuItem(value: 'ymd', child: Text('YMD')),
@@ -117,7 +129,11 @@ class _ExampleAppState extends State<ExampleApp> {
                             itemExtent: 44,
                             itemVisible: 5,
                             spacing: 12,
-                            flex: const WheelDateFlex(day: 3, month: 4, year: 4),
+                            flex: const WheelDateFlex(
+                              day: 3,
+                              month: 4,
+                              year: 4,
+                            ),
                             minYear: 1900,
                             maxYear: 2100,
                             order: _order,
@@ -144,4 +160,16 @@ class _ExampleAppState extends State<ExampleApp> {
       ),
     );
   }
+}
+
+class _AppScrollBehavior extends MaterialScrollBehavior {
+  const _AppScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => const {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.unknown,
+  };
 }
