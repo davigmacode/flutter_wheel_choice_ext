@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:wheel_choice_ext/wheel_choice_ext.dart';
 
@@ -23,8 +24,8 @@ List<String> _keysFromRow(WidgetTester tester) {
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('en_US', null);
-    await initializeDateFormatting('id_ID', null);
-    await initializeDateFormatting('ja_JP', null);
+    await initializeDateFormatting('id', null);
+    await initializeDateFormatting('ja', null);
   });
   test('static orders map correctly', () {
     final day = const SizedBox(key: ValueKey('D'));
@@ -43,6 +44,11 @@ void main() {
   testWidgets('WheelDateOrder.of uses MDY for en_US', (tester) async {
     await tester.pumpWidget(MaterialApp(
       locale: const Locale('en', 'US'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: const [
         Locale('en', 'US'),
         Locale('id', 'ID'),
@@ -54,13 +60,18 @@ void main() {
     expect(keys, ['M', 'D', 'Y']);
   });
 
-  testWidgets('WheelDateOrder.of uses DMY for id_ID', (tester) async {
+  testWidgets('WheelDateOrder.of uses DMY for id', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      locale: const Locale('id', 'ID'),
+      locale: const Locale('id'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: const [
         Locale('en', 'US'),
-        Locale('id', 'ID'),
-        Locale('ja', 'JP'),
+        Locale('id'),
+        Locale('ja'),
       ],
       home: Builder(builder: _buildOrderedRow),
     ));
@@ -68,13 +79,18 @@ void main() {
     expect(keys, ['D', 'M', 'Y']);
   });
 
-  testWidgets('WheelDateOrder.of uses YMD for ja_JP', (tester) async {
+  testWidgets('WheelDateOrder.of uses YMD for ja', (tester) async {
     await tester.pumpWidget(MaterialApp(
-      locale: const Locale('ja', 'JP'),
+      locale: const Locale('ja'),
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       supportedLocales: const [
         Locale('en', 'US'),
-        Locale('id', 'ID'),
-        Locale('ja', 'JP'),
+        Locale('id'),
+        Locale('ja'),
       ],
       home: Builder(builder: _buildOrderedRow),
     ));
