@@ -1,0 +1,19 @@
+// cSpell Settings
+{
+  "version": "0.2",
+  "language": "en",
+  "ignorePaths": [
+    "**.json",
+    "**.gitignore",
+    "**.g.dart",
+    "**.yaml",
+    "**.yml",
+    "**.http",
+    "**.rest",
+    "**.md",
+    "LICENSE"
+  ],
+  "words": [
+    "unselectable"
+  ]
+}
