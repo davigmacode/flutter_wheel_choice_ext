@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:wheel_choice/wheel_choice.dart';
 import 'builder.dart';
 import 'flex.dart';
-import 'format.dart';
 import 'header.dart';
+import 'label.dart';
 import 'order.dart';
 
 class WheelDateChoice extends StatefulWidget {
@@ -14,15 +14,7 @@ class WheelDateChoice extends StatefulWidget {
     this.itemExtent,
     this.itemVisible,
     this.itemBuilder,
-    this.dayBuilder,
-    this.monthBuilder,
-    this.yearBuilder,
-    this.dayLabel,
-    this.monthLabel,
-    this.yearLabel,
-    this.dayFormat,
-    this.monthFormat,
-    this.yearFormat,
+    this.label,
     this.flex,
     this.expanded,
     this.header,
@@ -41,15 +33,7 @@ class WheelDateChoice extends StatefulWidget {
   final double? itemExtent;
   final int? itemVisible;
   final WheelDateBuilder? itemBuilder;
-  final WheelItemBuilder<int>? dayBuilder;
-  final WheelItemBuilder<int>? monthBuilder;
-  final WheelItemBuilder<int>? yearBuilder;
-  final WheelItemLabel<int>? dayLabel;
-  final WheelItemLabel<int>? monthLabel;
-  final WheelItemLabel<int>? yearLabel;
-  final String? dayFormat;
-  final String? monthFormat;
-  final String? yearFormat;
+  final WheelDateLabel? label;
   final WheelDateFlex? flex;
   final bool? expanded;
   final WheelDateHeader? header;
@@ -84,18 +68,8 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
   List<int> get _dayOptions => List.generate(31, (i) => i + 1);
 
-  WheelItemLabel<int> get _dayLabel {
-    return widget.dayLabel ?? WheelDateFormat.dayOf(context, widget.dayFormat);
-  }
-
-  WheelItemLabel<int> get _monthLabel {
-    return widget.monthLabel ??
-        WheelDateFormat.monthOf(context, widget.monthFormat);
-  }
-
-  WheelItemLabel<int> get _yearLabel {
-    return widget.yearLabel ??
-        WheelDateFormat.yearOf(context, widget.yearFormat);
+  WheelDateLabel get _label {
+    return widget.label ?? WheelDateLabel.of(context);
   }
 
   WheelDateFlex get _flex => widget.flex ?? WheelDateFlex();
@@ -175,7 +149,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledDay,
-        itemLabel: _dayLabel,
+        itemLabel: _label.day,
         itemBuilder: widget.itemBuilder?.day,
         header: widget.header?.dayX,
         expanded: widget.expanded,
@@ -193,7 +167,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledMonth,
-        itemLabel: _monthLabel,
+        itemLabel: _label.month,
         itemBuilder: widget.itemBuilder?.month,
         header: widget.header?.monthX,
         expanded: widget.expanded,
@@ -211,7 +185,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
         itemDisabled: _isDisabledYear,
-        itemLabel: _yearLabel,
+        itemLabel: _label.year,
         itemBuilder: widget.itemBuilder?.year,
         header: widget.header?.yearX,
         expanded: widget.expanded,
