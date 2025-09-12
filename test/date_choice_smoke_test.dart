@@ -13,6 +13,10 @@ void main() {
 
   testWidgets('WheelDateChoice renders 3 wheels (DMY)', (tester) async {
     DateTime? changed;
+    final controller = WheelDateController(
+      value: DateTime(2024, 2, 10),
+      onChanged: (d) => changed = d,
+    );
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('en', 'US'),
@@ -24,11 +28,10 @@ void main() {
         supportedLocales: const [Locale('en', 'US')],
         home: Scaffold(
           body: Center(
-            child: WheelDateChoice(
-              value: DateTime(2024, 2, 10),
-              order: WheelDateOrder.dmy,
+            child: WheelDateChoice.raw(
+              controller: controller,
               itemLabel: WheelDateLabel.pattern(locale: 'en_US'),
-              onChanged: (d) => changed = d,
+              order: WheelDateOrder.dmy,
             ),
           ),
         ),
