@@ -1,16 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:wheel_choice/wheel_choice.dart';
+import 'package:wheel_choice_ext/src/common/types.dart';
 import 'builder.dart';
+import 'controller.dart';
 import 'flex.dart';
 import 'header.dart';
 import 'label.dart';
 import 'order.dart';
-import 'controller.dart';
 
 /// A composite wheel selector for picking a calendar date
 /// with day, month, and year columns.
 class WheelDateChoice extends StatefulWidget {
   /// Creates a date picker wheel.
+  WheelDateChoice({
+    super.key,
+    required DateTime value,
+    ValueChanged<DateTime>? onChanged,
+    ValueTransformer<DateTime, bool>? disableDate,
+    DateTime? minDate,
+    DateTime? maxDate,
+    int? minYear,
+    int? maxYear,
+    bool? loop,
+    this.itemExtent,
+    this.itemVisible,
+    this.itemBuilder,
+    this.itemLabel,
+    this.flex,
+    this.expanded,
+    this.header,
+    this.overlay,
+    this.effect,
+    this.order,
+    this.spacing,
+  }) : controller = WheelDateController(
+         value: value,
+         onChanged: onChanged,
+         disableDate: disableDate,
+         minDate: minDate,
+         maxDate: maxDate,
+         minYear: minYear,
+         maxYear: maxYear,
+       ),
+       _ownsController = true;
+
   const WheelDateChoice.raw({
     super.key,
     required this.controller,
@@ -25,7 +58,7 @@ class WheelDateChoice extends StatefulWidget {
     this.effect,
     this.order,
     this.spacing,
-  });
+  }) : _ownsController = false;
 
   /// Height of each wheel item.
   final double? itemExtent;
@@ -63,13 +96,16 @@ class WheelDateChoice extends StatefulWidget {
   /// Optional external controller. If null, an internal one is created.
   final WheelDateController controller;
 
+  /// Whether this widget instance owns [controller] and should dispose it.
+  final bool _ownsController;
+
   @override
   /// Creates the mutable state for this widget.
   State<WheelDateChoice> createState() => _WheelDateChoiceState();
 }
 
 class _WheelDateChoiceState extends State<WheelDateChoice> {
-  late final WheelDateController _controller;
+  late WheelDateController _ctrl;
 
   int? get _itemVisible => widget.itemVisible;
   double get _itemExtent => widget.itemExtent ?? 40;
@@ -83,12 +119,29 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   @override
   void initState() {
     super.initState();
-    _controller = widget.controller;
+    _ctrl = widget.controller;
+  }
+
+  @override
+  void didUpdateWidget(covariant WheelDateChoice oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // If the controller instance changed, update our reference and
+    // dispose the old one if this widget owned it.
+    if (!identical(widget.controller, oldWidget.controller)) {
+      if (oldWidget._ownsController) {
+        oldWidget.controller.dispose();
+      }
+      _ctrl = widget.controller;
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    // Dispose only when WheelChoice owns the controller (default ctor).
+    if (widget._ownsController) {
+      widget.controller.dispose();
+    }
     super.dispose();
   }
 
@@ -104,7 +157,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         header: widget.header?.dayX,
         expanded: widget.expanded,
         effect: widget.effect,
-        controller: _controller.day,
+        controller: _ctrl.day,
       ),
     );
 
@@ -118,7 +171,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         header: widget.header?.monthX,
         expanded: widget.expanded,
         effect: widget.effect,
-        controller: _controller.month,
+        controller: _ctrl.month,
       ),
     );
 
@@ -132,7 +185,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         header: widget.header?.yearX,
         expanded: widget.expanded,
         effect: widget.effect,
-        controller: _controller.year,
+        controller: _ctrl.year,
       ),
     );
 

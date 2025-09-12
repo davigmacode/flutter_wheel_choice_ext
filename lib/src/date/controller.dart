@@ -1,6 +1,7 @@
 import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wheel_choice/wheel_choice.dart';
+import 'package:wheel_choice_ext/src/common/types.dart';
 
 /// Controller to programmatically manipulate a composite date wheel
 /// (day, month, year) using three underlying [WheelController]s.
@@ -58,7 +59,7 @@ class WheelDateController {
   final ValueChanged<DateTime>? onChanged;
 
   /// Additional date-level disabling. If returns true, the date is disabled.
-  final bool Function(DateTime? date)? disableDate;
+  final ValueTransformer<DateTime, bool>? disableDate;
 
   /// Year options constrained by [minYear]/[maxYear] and [minDate]/[maxDate].
   static List<int> createYearOptions({
