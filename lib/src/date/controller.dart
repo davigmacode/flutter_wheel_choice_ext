@@ -12,8 +12,8 @@ class WheelDateController {
   /// You can also configure boundaries, disabled-date logic, and looping.
   WheelDateController({
     required DateTime value,
-    this.onChanged,
-    this.disableDate,
+    ValueChanged<DateTime>? onChanged,
+    ValueTransformer<DateTime, bool>? disableDate,
     DateTime? minDate,
     DateTime? maxDate,
     int? minYear,
@@ -22,6 +22,8 @@ class WheelDateController {
     int? anchorYear,
     bool? loop,
   }) : initialValue = value,
+       _onChanged = onChanged,
+       _disableDate = disableDate,
        day = WheelController<int>(
          value: value.day,
          options: createDayOptions(),
@@ -44,7 +46,8 @@ class WheelDateController {
          ),
          loop: loop,
        ) {
-    _configureControllers();
+    _handleDisableDate();
+    _handleValueChanged();
   }
 
   /// Controller for day wheel (1..31, depending on month/year).
@@ -60,10 +63,10 @@ class WheelDateController {
   final DateTime initialValue;
 
   /// Emits whenever a full date is committed by the consumer.
-  final ValueChanged<DateTime>? onChanged;
+  ValueChanged<DateTime>? _onChanged;
 
   /// Additional date-level disabling. If returns true, the date is disabled.
-  final ValueTransformer<DateTime, bool>? disableDate;
+  ValueTransformer<DateTime, bool>? _disableDate;
 
   /// Year options constrained by [minYear]/[maxYear] and [minDate]/[maxDate].
   static List<int> createYearOptions({
@@ -87,66 +90,62 @@ class WheelDateController {
   /// Day options: 1..31 (validity is checked separately).
   static List<int> createDayOptions() => List.generate(31, (i) => i + 1);
 
-  void _configureControllers() {
-    // Item disabling rules based on current selections
-    day.setItemDisabled(
-      (int d) => isDisabledDay(
-        d,
-        year: year.value ?? initialValue.year,
-        month: month.value ?? initialValue.month,
-      ),
+  void setOptions({
+    DateTime? minDate,
+    DateTime? maxDate,
+    int? minYear,
+    int? maxYear,
+    int? radiusYear,
+    int? anchorYear,
+    bool alignToValue = true,
+    bool animate = false,
+    Duration? duration,
+    Curve? curve,
+  }) {
+    day.setOptions(
+      createDayOptions(),
+      alignToValue: alignToValue,
+      animate: animate,
+      duration: duration,
     );
-    month.setItemDisabled(
-      (int m) => isDisabledMonth(
-        m,
-        year: year.value ?? initialValue.year,
-        day: day.value ?? initialValue.day,
-      ),
+    month.setOptions(
+      createMonthOptions(),
+      alignToValue: alignToValue,
+      animate: animate,
+      duration: duration,
     );
-    year.setItemDisabled(
-      (int y) => isDisabledYear(
-        y,
-        month: month.value ?? initialValue.month,
-        day: day.value ?? initialValue.day,
+    year.setOptions(
+      createYearOptions(
+        minDate: minDate,
+        maxDate: maxDate,
+        minYear: minYear,
+        maxYear: maxYear,
+        radiusYear: radiusYear,
+        anchorYear: anchorYear,
       ),
+      alignToValue: alignToValue,
+      animate: animate,
+      duration: duration,
     );
+  }
 
-    // Change propagation: keep date valid and notify
-    day.setOnChanged((int d) {
-      final y = year.value ?? initialValue.year;
-      final m = month.value ?? initialValue.month;
-      if (isValidDate(y, m, d)) {
-        onChanged?.call(DateTime(y, m, d));
-      }
-    });
+  /// Updates the disableDate resolver.
+  void setDisableDate(ValueTransformer<DateTime, bool>? f) => _disableDate = f;
 
-    month.setOnChanged((int m) {
-      final y = year.value ?? initialValue.year;
-      var d = day.value ?? initialValue.day;
-      if (!isValidDate(y, m, d)) {
-        d = 1;
-        // Correct the day wheel to a valid day (1)
-        day.jumpToValue(d);
-      }
-      onChanged?.call(DateTime(y, m, d));
-    });
+  /// Updates the onChanged callback.
+  void setOnChanged(ValueChanged<DateTime>? f) => _onChanged = f;
 
-    year.setOnChanged((int y) {
-      final m = month.value ?? initialValue.month;
-      var d = day.value ?? initialValue.day;
-      if (!isValidDate(y, m, d)) {
-        d = 1;
-        day.jumpToValue(d);
-      }
-      onChanged?.call(DateTime(y, m, d));
-    });
+  void setLoop(bool? v) {
+    day.setLoop(v);
+    month.setLoop(v);
+    year.setLoop(v);
   }
 
   /// Jumps the three wheels to the provided [date] without animation.
-  void jumpToDate(DateTime date) {
-    day.jumpToValue(date.day);
-    month.jumpToValue(date.month);
-    year.jumpToValue(date.year);
+  void jumpToDate(DateTime date, {bool notify = true}) {
+    day.jumpToValue(date.day, notify: notify);
+    month.jumpToValue(date.month, notify: notify);
+    year.jumpToValue(date.year, notify: notify);
   }
 
   /// Animates the three wheels to the provided [date].
@@ -162,28 +161,85 @@ class WheelDateController {
     ]);
   }
 
+  void _handleDisableDate() {
+    // Item disabling rules based on current selections
+    day.setItemDisabled(
+      (int d) => _isDisabledDay(
+        d,
+        year: year.value ?? initialValue.year,
+        month: month.value ?? initialValue.month,
+      ),
+    );
+    month.setItemDisabled(
+      (int m) => _isDisabledMonth(
+        m,
+        year: year.value ?? initialValue.year,
+        day: day.value ?? initialValue.day,
+      ),
+    );
+    year.setItemDisabled(
+      (int y) => _isDisabledYear(
+        y,
+        month: month.value ?? initialValue.month,
+        day: day.value ?? initialValue.day,
+      ),
+    );
+  }
+
+  void _handleValueChanged() {
+    // Change propagation: keep date valid and notify
+    day.setOnChanged((int d) {
+      final y = year.value ?? initialValue.year;
+      final m = month.value ?? initialValue.month;
+      if (_isValidDate(y, m, d)) {
+        _onChanged?.call(DateTime(y, m, d));
+      }
+    });
+
+    month.setOnChanged((int m) {
+      final y = year.value ?? initialValue.year;
+      var d = day.value ?? initialValue.day;
+      if (!_isValidDate(y, m, d)) {
+        d = 1;
+        // Correct the day wheel to a valid day (1)
+        day.jumpToValue(d);
+      }
+      _onChanged?.call(DateTime(y, m, d));
+    });
+
+    year.setOnChanged((int y) {
+      final m = month.value ?? initialValue.month;
+      var d = day.value ?? initialValue.day;
+      if (!_isValidDate(y, m, d)) {
+        d = 1;
+        day.jumpToValue(d);
+      }
+      _onChanged?.call(DateTime(y, m, d));
+    });
+  }
+
   /// Validates a date against calendar rules and configured boundaries.
-  bool isValidDate(int year, int month, int day) {
+  bool _isValidDate(int year, int month, int day) {
     try {
       final date = DateTime(year, month, day);
       if (date.year != year || date.month != month || date.day != day) {
         return false;
       }
-      if (disableDate?.call(date) == true) return false;
+      if (_disableDate?.call(date) == true) return false;
       return true;
     } catch (_) {
       return false;
     }
   }
 
-  bool isDisabledDay(int day, {required int year, required int month}) =>
-      !isValidDate(year, month, day);
+  bool _isDisabledDay(int day, {required int year, required int month}) =>
+      !_isValidDate(year, month, day);
 
-  bool isDisabledMonth(int month, {required int year, required int day}) =>
-      !isValidDate(year, month, day);
+  bool _isDisabledMonth(int month, {required int year, required int day}) =>
+      !_isValidDate(year, month, day);
 
-  bool isDisabledYear(int year, {required int month, required int day}) {
-    return !isValidDate(year, month, day);
+  bool _isDisabledYear(int year, {required int month, required int day}) {
+    return !_isValidDate(year, month, day);
   }
 
   /// Disposes the three underlying controllers.

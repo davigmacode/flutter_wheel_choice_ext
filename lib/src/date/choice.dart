@@ -39,7 +39,7 @@ class WheelDateChoice extends StatefulWidget {
 
   const WheelDateChoice.raw({
     super.key,
-    this.controller,
+    required WheelDateController this.controller,
     this.itemExtent,
     this.itemVisible,
     this.itemBuilder,
@@ -143,10 +143,6 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   double _ensureItemExtent() => _defaultItemExtent ??= 40;
   double get _itemExtent => widget.itemExtent ?? _ensureItemExtent();
 
-  WheelDateLabel? _defaultLabel;
-  WheelDateLabel _ensureLabel() => _defaultLabel ??= WheelDateLabel.of(context);
-  WheelDateLabel get _label => widget.itemLabel ?? _ensureLabel();
-
   WheelDateFlex? _defaultFlex;
   WheelDateFlex _ensureFlex() => _defaultFlex ??= WheelDateFlex();
   WheelDateFlex get _flex => widget.flex ?? _ensureFlex();
@@ -174,34 +170,35 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
       // Create internal if not yet created and needed later.
       // For value change, keep options stable and jump to the new date.
       if (widget.value != null && widget.value != oldWidget.value) {
-        _defaultCtrl?.jumpToDate(widget.value!);
+        _defaultCtrl?.jumpToDate(widget.value!, notify: false);
       }
 
-      // If any constraints or disable logic changed, recreate the controller.
-      final constraintsChanged =
-          widget.minDate != oldWidget.minDate ||
+      if (widget.minDate != oldWidget.minDate ||
           widget.maxDate != oldWidget.maxDate ||
           widget.minYear != oldWidget.minYear ||
           widget.maxYear != oldWidget.maxYear ||
           widget.radiusYear != oldWidget.radiusYear ||
-          widget.anchorYear != oldWidget.anchorYear ||
-          widget.disableDate != oldWidget.disableDate ||
-          widget.loop != oldWidget.loop;
-
-      if (constraintsChanged && _defaultCtrl != null) {
-        _defaultCtrl!.dispose();
-        _defaultCtrl = WheelDateController(
-          value: widget.value ?? DateTime.now(),
-          onChanged: widget.onChanged,
-          disableDate: widget.disableDate,
+          widget.anchorYear != oldWidget.anchorYear) {
+        _ctrl.setOptions(
           minDate: widget.minDate,
           maxDate: widget.maxDate,
           minYear: widget.minYear,
           maxYear: widget.maxYear,
           radiusYear: widget.radiusYear,
           anchorYear: widget.anchorYear,
-          loop: widget.loop,
         );
+      }
+
+      if (widget.onChanged != oldWidget.onChanged) {
+        _ctrl.setOnChanged(widget.onChanged);
+      }
+
+      if (widget.disableDate != oldWidget.disableDate) {
+        _ctrl.setDisableDate(widget.disableDate);
+      }
+
+      if (widget.loop != oldWidget.loop) {
+        _ctrl.setLoop(widget.loop);
       }
     }
   }
@@ -216,12 +213,14 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
   @override
   Widget build(BuildContext context) {
+    final label = widget.itemLabel ?? WheelDateLabel.of(context);
+
     final dayPicker = Flexible(
       flex: _flex.day,
       child: WheelChoice<int>.raw(
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
-        itemLabel: _label.day,
+        itemLabel: label.day,
         itemBuilder: widget.itemBuilder?.day,
         header: widget.header?.dayX,
         expanded: widget.expanded,
@@ -235,7 +234,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
       child: WheelChoice<int>.raw(
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
-        itemLabel: _label.month,
+        itemLabel: label.month,
         itemBuilder: widget.itemBuilder?.month,
         header: widget.header?.monthX,
         expanded: widget.expanded,
@@ -249,7 +248,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
       child: WheelChoice<int>.raw(
         itemExtent: _itemExtent,
         itemVisible: _itemVisible,
-        itemLabel: _label.year,
+        itemLabel: label.year,
         itemBuilder: widget.itemBuilder?.year,
         header: widget.header?.yearX,
         expanded: widget.expanded,
