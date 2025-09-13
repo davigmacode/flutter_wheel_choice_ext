@@ -21,6 +21,8 @@ class WheelDateChoice extends StatefulWidget {
     DateTime? maxDate,
     int? minYear,
     int? maxYear,
+    int? radiusYear,
+    int? anchorYear,
     bool? loop,
     this.itemExtent,
     this.itemVisible,
@@ -41,6 +43,8 @@ class WheelDateChoice extends StatefulWidget {
          maxDate: maxDate,
          minYear: minYear,
          maxYear: maxYear,
+         radiusYear: radiusYear,
+         anchorYear: anchorYear,
        ),
        _ownsController = true;
 

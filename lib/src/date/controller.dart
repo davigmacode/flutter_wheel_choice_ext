@@ -18,6 +18,8 @@ class WheelDateController {
     DateTime? maxDate,
     int? minYear,
     int? maxYear,
+    int? radiusYear,
+    int? anchorYear,
     bool? loop,
   }) : initialValue = value,
        day = WheelController<int>(
@@ -37,6 +39,8 @@ class WheelDateController {
            maxDate: maxDate,
            minYear: minYear,
            maxYear: maxYear,
+           radiusYear: radiusYear,
+           anchorYear: anchorYear,
          ),
          loop: loop,
        ) {
@@ -67,10 +71,13 @@ class WheelDateController {
     DateTime? maxDate,
     int? minYear,
     int? maxYear,
+    int? radiusYear,
+    int? anchorYear,
   }) {
-    final now = DateTime.now();
-    final min = minYear ?? minDate?.year ?? (now.year - 100);
-    final max = maxYear ?? maxDate?.year ?? (now.year + 100);
+    radiusYear ??= 20;
+    anchorYear ??= DateTime.now().year;
+    final min = minYear ?? minDate?.year ?? (anchorYear - radiusYear);
+    final max = maxYear ?? maxDate?.year ?? (anchorYear + radiusYear);
     return List.generate(max - min + 1, (i) => min + i);
   }
 
