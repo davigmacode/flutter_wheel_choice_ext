@@ -12,18 +12,18 @@ import 'order.dart';
 /// with day, month, and year columns.
 class WheelDateChoice extends StatefulWidget {
   /// Creates a date picker wheel.
-  WheelDateChoice({
+  const WheelDateChoice({
     super.key,
-    required DateTime value,
-    ValueChanged<DateTime>? onChanged,
-    ValueTransformer<DateTime, bool>? disableDate,
-    DateTime? minDate,
-    DateTime? maxDate,
-    int? minYear,
-    int? maxYear,
-    int? radiusYear,
-    int? anchorYear,
-    bool? loop,
+    this.value,
+    this.onChanged,
+    this.disableDate,
+    this.minDate,
+    this.maxDate,
+    this.minYear,
+    this.maxYear,
+    this.radiusYear,
+    this.anchorYear,
+    this.loop,
     this.itemExtent,
     this.itemVisible,
     this.itemBuilder,
@@ -35,22 +35,12 @@ class WheelDateChoice extends StatefulWidget {
     this.effect,
     this.order,
     this.spacing,
-  }) : controller = WheelDateController(
-         value: value,
-         onChanged: onChanged,
-         disableDate: disableDate,
-         minDate: minDate,
-         maxDate: maxDate,
-         minYear: minYear,
-         maxYear: maxYear,
-         radiusYear: radiusYear,
-         anchorYear: anchorYear,
-       ),
+  }) : controller = null,
        _ownsController = true;
 
   const WheelDateChoice.raw({
     super.key,
-    required this.controller,
+    this.controller,
     this.itemExtent,
     this.itemVisible,
     this.itemBuilder,
@@ -62,7 +52,35 @@ class WheelDateChoice extends StatefulWidget {
     this.effect,
     this.order,
     this.spacing,
-  }) : _ownsController = false;
+  }) : value = null,
+       onChanged = null,
+       disableDate = null,
+       minDate = null,
+       maxDate = null,
+       minYear = null,
+       maxYear = null,
+       radiusYear = null,
+       anchorYear = null,
+       loop = null,
+       _ownsController = false;
+
+  /// Input value used when internally creating a controller.
+  final DateTime? value;
+
+  /// Emits when a date changes (used with internal controller).
+  final ValueChanged<DateTime>? onChanged;
+
+  /// Additional date-level disabling (used with internal controller).
+  final ValueTransformer<DateTime, bool>? disableDate;
+
+  /// Min/max constraints (used with internal controller).
+  final DateTime? minDate;
+  final DateTime? maxDate;
+  final int? minYear;
+  final int? maxYear;
+  final int? radiusYear;
+  final int? anchorYear;
+  final bool? loop;
 
   /// Height of each wheel item.
   final double? itemExtent;
@@ -98,7 +116,7 @@ class WheelDateChoice extends StatefulWidget {
   final double? spacing;
 
   /// Optional external controller. If null, an internal one is created.
-  final WheelDateController controller;
+  final WheelDateController? controller;
 
   /// Whether this widget instance owns [controller] and should dispose it.
   final bool _ownsController;
@@ -123,7 +141,20 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   @override
   void initState() {
     super.initState();
-    _ctrl = widget.controller;
+    _ctrl =
+        widget.controller ??
+        WheelDateController(
+          value: widget.value ?? DateTime.now(),
+          onChanged: widget.onChanged,
+          disableDate: widget.disableDate,
+          minDate: widget.minDate,
+          maxDate: widget.maxDate,
+          minYear: widget.minYear,
+          maxYear: widget.maxYear,
+          radiusYear: widget.radiusYear,
+          anchorYear: widget.anchorYear,
+          loop: widget.loop,
+        );
   }
 
   @override
@@ -133,10 +164,46 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     // If the controller instance changed, update our reference and
     // dispose the old one if this widget owned it.
     if (!identical(widget.controller, oldWidget.controller)) {
-      if (oldWidget._ownsController) {
-        oldWidget.controller.dispose();
+      if (oldWidget._ownsController && oldWidget.controller != null) {
+        oldWidget.controller!.dispose();
       }
-      _ctrl = widget.controller;
+      _ctrl = widget.controller ?? _ctrl;
+    }
+
+    // If we own the controller (internal), update it based on param changes.
+    if (widget._ownsController) {
+      // If only the value changed, keep options stable and jump to the new date.
+      if (widget.value != null && widget.value != oldWidget.value) {
+        _ctrl.jumpToDate(widget.value!);
+      }
+
+      // If any constraints or disable logic changed, recreate the controller.
+      final constraintsChanged =
+          widget.minDate != oldWidget.minDate ||
+          widget.maxDate != oldWidget.maxDate ||
+          widget.minYear != oldWidget.minYear ||
+          widget.maxYear != oldWidget.maxYear ||
+          widget.radiusYear != oldWidget.radiusYear ||
+          widget.anchorYear != oldWidget.anchorYear ||
+          widget.disableDate != oldWidget.disableDate ||
+          widget.loop != oldWidget.loop;
+
+      if (constraintsChanged) {
+        // Dispose and recreate with new config while preserving current selection.
+        _ctrl.dispose();
+        _ctrl = WheelDateController(
+          value: widget.value ?? DateTime.now(),
+          onChanged: widget.onChanged,
+          disableDate: widget.disableDate,
+          minDate: widget.minDate,
+          maxDate: widget.maxDate,
+          minYear: widget.minYear,
+          maxYear: widget.maxYear,
+          radiusYear: widget.radiusYear,
+          anchorYear: widget.anchorYear,
+          loop: widget.loop,
+        );
+      }
     }
   }
 
@@ -144,7 +211,11 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   void dispose() {
     // Dispose only when WheelChoice owns the controller (default ctor).
     if (widget._ownsController) {
-      widget.controller.dispose();
+      if (widget.controller != null) {
+        widget.controller!.dispose();
+      } else {
+        _ctrl.dispose();
+      }
     }
     super.dispose();
   }
