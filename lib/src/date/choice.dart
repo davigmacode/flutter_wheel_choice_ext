@@ -35,8 +35,14 @@ class WheelDateChoice extends StatefulWidget {
     this.effect,
     this.order,
     this.spacing,
+    this.physics,
+    this.clipBehavior,
+    this.keyboard,
+    this.focusNode,
+    this.haptics,
   }) : controller = null;
 
+  /// Creates a date picker wheel using an external [controller].
   const WheelDateChoice.raw({
     super.key,
     required WheelDateController this.controller,
@@ -51,16 +57,21 @@ class WheelDateChoice extends StatefulWidget {
     this.effect,
     this.order,
     this.spacing,
-  }) : value = null,
-       onChanged = null,
-       disableDate = null,
-       minDate = null,
-       maxDate = null,
-       minYear = null,
-       maxYear = null,
-       radiusYear = null,
-       anchorYear = null,
-       loop = null;
+    this.physics,
+    this.clipBehavior,
+    this.keyboard,
+    this.focusNode,
+    this.haptics,
+  })  : value = null,
+        onChanged = null,
+        disableDate = null,
+        minDate = null,
+        maxDate = null,
+        minYear = null,
+        maxYear = null,
+        radiusYear = null,
+        anchorYear = null,
+        loop = null;
 
   /// Input value used when internally creating a controller.
   final DateTime? value;
@@ -113,11 +124,25 @@ class WheelDateChoice extends StatefulWidget {
   /// Horizontal spacing between columns.
   final double? spacing;
 
+  /// Optional scroll physics forwarded to each wheel.
+  final ScrollPhysics? physics;
+
+  /// Viewport clipping behavior.
+  final Clip? clipBehavior;
+
+  /// Whether keyboard navigation is enabled.
+  final bool? keyboard;
+
+  /// Optional focus node for keyboard events.
+  final FocusNode? focusNode;
+
+  /// Whether haptic feedback is played on selection changes.
+  final bool? haptics;
+
   /// Optional external controller. If null, an internal one is created.
   final WheelDateController? controller;
 
   @override
-  /// Creates the mutable state for this widget.
   State<WheelDateChoice> createState() => _WheelDateChoiceState();
 }
 
@@ -139,15 +164,9 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     );
   }
 
-  double? _defaultItemExtent;
-  double _ensureItemExtent() => _defaultItemExtent ??= 40;
-  double get _itemExtent => widget.itemExtent ?? _ensureItemExtent();
-
   WheelDateFlex? _defaultFlex;
-  WheelDateFlex _ensureFlex() => _defaultFlex ??= WheelDateFlex();
+  WheelDateFlex _ensureFlex() => _defaultFlex ??= const WheelDateFlex();
   WheelDateFlex get _flex => widget.flex ?? _ensureFlex();
-
-  int? get _itemVisible => widget.itemVisible;
 
   @override
   void initState() {
@@ -211,20 +230,47 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     super.dispose();
   }
 
+  List<Widget> _withSpacing(List<Widget> items, double spacing) {
+    if (spacing <= 0 || items.length <= 1) return items;
+    final result = <Widget>[];
+    for (var i = 0; i < items.length; i++) {
+      result.add(items[i]);
+      if (i < items.length - 1) {
+        result.add(SizedBox(width: spacing));
+      }
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = WheelChoiceTheme.of(context);
+    final effectiveItemExtent = widget.itemExtent ?? theme?.itemExtent ?? 40.0;
+    final effectiveItemVisible = widget.itemVisible ?? theme?.itemVisible;
+    final effectiveEffect = widget.effect ?? theme?.effect;
+    final effectiveOverlay = widget.overlay ?? theme?.overlay;
+    final effectivePhysics = widget.physics ?? theme?.physics;
+    final effectiveClipBehavior = widget.clipBehavior ?? theme?.clipBehavior;
+    final effectiveKeyboard = widget.keyboard ?? theme?.keyboard;
+    final effectiveHaptics = widget.haptics ?? theme?.haptics;
+
     final label = widget.itemLabel ?? WheelDateLabel.of(context);
 
     final dayPicker = Flexible(
       flex: _flex.day,
       child: WheelChoice<int>.raw(
-        itemExtent: _itemExtent,
-        itemVisible: _itemVisible,
+        itemExtent: effectiveItemExtent,
+        itemVisible: effectiveItemVisible,
         itemLabel: label.day,
         itemBuilder: widget.itemBuilder?.day,
         header: widget.header?.dayX,
         expanded: widget.expanded,
-        effect: widget.effect,
+        effect: effectiveEffect,
+        physics: effectivePhysics,
+        clipBehavior: effectiveClipBehavior,
+        keyboard: effectiveKeyboard,
+        focusNode: widget.focusNode,
+        haptics: effectiveHaptics,
         controller: _ctrl.day,
       ),
     );
@@ -232,13 +278,18 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     final monthPicker = Flexible(
       flex: _flex.month,
       child: WheelChoice<int>.raw(
-        itemExtent: _itemExtent,
-        itemVisible: _itemVisible,
+        itemExtent: effectiveItemExtent,
+        itemVisible: effectiveItemVisible,
         itemLabel: label.month,
         itemBuilder: widget.itemBuilder?.month,
         header: widget.header?.monthX,
         expanded: widget.expanded,
-        effect: widget.effect,
+        effect: effectiveEffect,
+        physics: effectivePhysics,
+        clipBehavior: effectiveClipBehavior,
+        keyboard: effectiveKeyboard,
+        focusNode: widget.focusNode,
+        haptics: effectiveHaptics,
         controller: _ctrl.month,
       ),
     );
@@ -246,13 +297,18 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     final yearPicker = Flexible(
       flex: _flex.year,
       child: WheelChoice<int>.raw(
-        itemExtent: _itemExtent,
-        itemVisible: _itemVisible,
+        itemExtent: effectiveItemExtent,
+        itemVisible: effectiveItemVisible,
         itemLabel: label.year,
         itemBuilder: widget.itemBuilder?.year,
         header: widget.header?.yearX,
         expanded: widget.expanded,
-        effect: widget.effect,
+        effect: effectiveEffect,
+        physics: effectivePhysics,
+        clipBehavior: effectiveClipBehavior,
+        keyboard: effectiveKeyboard,
+        focusNode: widget.focusNode,
+        haptics: effectiveHaptics,
         controller: _ctrl.year,
       ),
     );
@@ -262,13 +318,12 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
     final children = order.callback(pickers);
 
     return WheelOverlay(
-      builder: widget.overlay,
+      builder: effectiveOverlay,
       offset: widget.header?.extentX,
-      extent: _itemExtent,
+      extent: effectiveItemExtent,
       child: Row(
-        spacing: widget.spacing ?? 0,
         mainAxisAlignment: MainAxisAlignment.center,
-        children: children,
+        children: _withSpacing(children, widget.spacing ?? 0),
       ),
     );
   }

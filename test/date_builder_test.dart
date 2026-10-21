@@ -1,7 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wheel_choice/wheel_choice.dart';
-
 import 'package:wheel_choice_ext/wheel_choice_ext.dart';
 
 void main() {

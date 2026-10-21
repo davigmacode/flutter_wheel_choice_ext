@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:wheel_choice/wheel_choice.dart';
-
 import 'package:wheel_choice_ext/wheel_choice_ext.dart';
 
 void main() {

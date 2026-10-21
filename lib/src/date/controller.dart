@@ -21,31 +21,32 @@ class WheelDateController {
     int? radiusYear,
     int? anchorYear,
     bool? loop,
-  }) : initialValue = value,
-       _onChanged = onChanged,
-       _disableDate = disableDate,
-       day = WheelController<int>(
-         value: value.day,
-         options: createDayOptions(),
-         loop: loop,
-       ),
-       month = WheelController<int>(
-         value: value.month,
-         options: createMonthOptions(),
-         loop: loop,
-       ),
-       year = WheelController<int>(
-         value: value.year,
-         options: createYearOptions(
-           minDate: minDate,
-           maxDate: maxDate,
-           minYear: minYear,
-           maxYear: maxYear,
-           radiusYear: radiusYear,
-           anchorYear: anchorYear,
-         ),
-         loop: loop,
-       ) {
+  })  : initialValue = value,
+        _onChanged = onChanged,
+        _disableDate = disableDate,
+        _valueNotifier = ValueNotifier<DateTime>(value),
+        day = WheelController<int>(
+          value: value.day,
+          options: createDayOptions(),
+          loop: loop,
+        ),
+        month = WheelController<int>(
+          value: value.month,
+          options: createMonthOptions(),
+          loop: loop,
+        ),
+        year = WheelController<int>(
+          value: value.year,
+          options: createYearOptions(
+            minDate: minDate,
+            maxDate: maxDate,
+            minYear: minYear,
+            maxYear: maxYear,
+            radiusYear: radiusYear,
+            anchorYear: anchorYear,
+          ),
+          loop: loop,
+        ) {
     _handleDisableDate();
     _handleValueChanged();
   }
@@ -67,6 +68,17 @@ class WheelDateController {
 
   /// Additional date-level disabling. If returns true, the date is disabled.
   ValueTransformer<DateTime, bool>? _disableDate;
+
+  final ValueNotifier<DateTime> _valueNotifier;
+
+  /// The currently selected date.
+  DateTime get value => _valueNotifier.value;
+
+  /// Read-only listenable for the current date.
+  ///
+  /// Emits updates whenever the selection changes, pairing with
+  /// [ValueListenableBuilder] for reactive UI patterns.
+  ValueListenable<DateTime> get valueListenable => _valueNotifier;
 
   /// Year options constrained by [minYear]/[maxYear] and [minDate]/[maxDate].
   static List<int> createYearOptions({
@@ -146,6 +158,10 @@ class WheelDateController {
     day.jumpToValue(date.day, notify: notify);
     month.jumpToValue(date.month, notify: notify);
     year.jumpToValue(date.year, notify: notify);
+    _valueNotifier.value = date;
+    if (notify) {
+      _onChanged?.call(date);
+    }
   }
 
   /// Animates the three wheels to the provided [date].
@@ -153,13 +169,81 @@ class WheelDateController {
     DateTime date, {
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.ease,
+    bool notify = true,
   }) async {
     await Future.wait([
-      day.animateToValue(date.day, duration: duration, curve: curve),
-      month.animateToValue(date.month, duration: duration, curve: curve),
-      year.animateToValue(date.year, duration: duration, curve: curve),
+      day.animateToValue(
+        date.day,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      ),
+      month.animateToValue(
+        date.month,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      ),
+      year.animateToValue(
+        date.year,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      ),
     ]);
+    _valueNotifier.value = date;
+    if (notify) {
+      _onChanged?.call(date);
+    }
   }
+
+  /// Moves the day wheel to the next item if available.
+  Future<bool> nextDay({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      day.next(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the day wheel to the previous item if available.
+  Future<bool> previousDay({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      day.previous(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the month wheel to the next item if available.
+  Future<bool> nextMonth({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      month.next(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the month wheel to the previous item if available.
+  Future<bool> previousMonth({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      month.previous(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the year wheel to the next item if available.
+  Future<bool> nextYear({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      year.next(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the year wheel to the previous item if available.
+  Future<bool> previousYear({
+    bool animate = true,
+    Duration? duration,
+    Curve? curve,
+  }) =>
+      year.previous(animate: animate, duration: duration, curve: curve);
 
   void _handleDisableDate() {
     // Item disabling rules based on current selections
@@ -192,29 +276,44 @@ class WheelDateController {
       final y = year.value ?? initialValue.year;
       final m = month.value ?? initialValue.month;
       if (_isValidDate(y, m, d)) {
-        _onChanged?.call(DateTime(y, m, d));
+        final newDate = DateTime(y, m, d);
+        _valueNotifier.value = newDate;
+        _onChanged?.call(newDate);
       }
     });
 
     month.setOnChanged((int m) {
       final y = year.value ?? initialValue.year;
       var d = day.value ?? initialValue.day;
+      final maxDays = DateTime(y, m + 1, 0).day;
+      if (d > maxDays) {
+        d = maxDays;
+        day.jumpToValue(d, notify: false);
+      }
       if (!_isValidDate(y, m, d)) {
         d = 1;
-        // Correct the day wheel to a valid day (1)
-        day.jumpToValue(d);
+        day.jumpToValue(d, notify: false);
       }
-      _onChanged?.call(DateTime(y, m, d));
+      final newDate = DateTime(y, m, d);
+      _valueNotifier.value = newDate;
+      _onChanged?.call(newDate);
     });
 
     year.setOnChanged((int y) {
       final m = month.value ?? initialValue.month;
       var d = day.value ?? initialValue.day;
+      final maxDays = DateTime(y, m + 1, 0).day;
+      if (d > maxDays) {
+        d = maxDays;
+        day.jumpToValue(d, notify: false);
+      }
       if (!_isValidDate(y, m, d)) {
         d = 1;
-        day.jumpToValue(d);
+        day.jumpToValue(d, notify: false);
       }
-      _onChanged?.call(DateTime(y, m, d));
+      final newDate = DateTime(y, m, d);
+      _valueNotifier.value = newDate;
+      _onChanged?.call(newDate);
     });
   }
 
@@ -242,8 +341,9 @@ class WheelDateController {
     return !_isValidDate(year, month, day);
   }
 
-  /// Disposes the three underlying controllers.
+  /// Disposes the underlying notifiers and controllers.
   void dispose() {
+    _valueNotifier.dispose();
     day.dispose();
     month.dispose();
     year.dispose();
