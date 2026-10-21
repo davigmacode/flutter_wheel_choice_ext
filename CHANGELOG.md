@@ -3,23 +3,33 @@
 - **Wheel Choice 1.3.0 Compatibility**:
   - Upgraded dependency to `wheel_choice: ^1.3.0`.
   - Re-exported all primary APIs from `wheel_choice` directly from `package:wheel_choice_ext/wheel_choice_ext.dart`.
-- **Subtree Theming**:
-  - `WheelDateChoice` and `WheelTimeChoice` inherit `itemExtent`, `itemVisible`, `effect`, `overlay`, `physics`, `clipBehavior`, `keyboard`, and `haptics` from any ancestor `WheelChoiceTheme`.
-- **Time Picker Suite (`src/time/`)**:
-  - Implemented `WheelTimeChoice` and `WheelTimeChoice.raw` with multi-column time scrolling.
-  - Added `WheelTimeController` supporting both 24-hour (0..23) and 12-hour (1..12 + AM/PM) modes.
-  - Added configurable `minuteStep` (e.g. 1, 5, 10, 15 minutes).
-  - Added stepping methods: `nextHour()`, `previousHour()`, `nextMinute()`, `previousMinute()`, `togglePeriod()`.
-  - Integrated `WheelTimeLabel`, `WheelTimeBuilder`, `WheelTimeFlex`, `WheelTimeHeader`, and `WheelTimePeriod`.
 - **Date Picker Suite (`src/date/`)**:
-  - Enhanced `WheelDateController` with `DateTime get value` and `ValueListenable<DateTime> get valueListenable`.
-  - Added date stepping methods: `nextDay()`, `previousDay()`, `nextMonth()`, `previousMonth()`, `nextYear()`, `previousYear()`.
-  - Added automatic day clamping for shorter months (e.g., jumping from 31 Jan to Feb clamps day to 28/29).
-  - Added safe backwards-compatible column spacing.
-- **Form Integration**:
-  - Added `WheelDateChoiceFormField` (extending Flutter's `FormField<DateTime>`) with validation, `InputDecoration` error rendering, `onSaved`, and `reset` support.
-  - Added `WheelTimeChoiceFormField` (extending Flutter's `FormField<TimeOfDay>`) with validation, `InputDecoration` error rendering, `onSaved`, and `reset` support.
+  - `WheelDateChoice`, `WheelDateController`, `WheelDateChoiceFormField`.
+  - Added `value` getter, `valueListenable`, step helpers, and automatic day clamping.
+  - Subtree theming inheritance with `WheelChoiceTheme`.
+- **Time Picker Suite (`src/time/`)**:
+  - `WheelTimeChoice`, `WheelTimeController`, `WheelTimeChoiceFormField`.
+  - Supported 24-hour mode (0..23) and 12-hour mode (1..12 + AM/PM).
+  - Configurable `minuteStep` (1, 5, 10, 15 mins) and step navigation.
+- **Combined Date & Time Suite (`src/datetime/`)**:
+  - `WheelDateTimeChoice`, `WheelDateTimeController`, `WheelDateTimeChoiceFormField`.
+  - Synchronized date and time wheels into a unified `DateTime` model.
+- **Duration & Timer Suite (`src/duration/`)**:
+  - `WheelDurationChoice`, `WheelDurationController`, `WheelDurationChoiceFormField`.
+  - Hours, minutes, and seconds wheels for stopwatches, workouts, and cooking timers.
+- **Number & Weight/Height Suite (`src/number/`)**:
+  - `WheelNumberChoice`, `WheelNumberController`, `WheelNumberChoiceFormField`.
+  - Multi-column integer, decimal fraction, and selectable unit wheels.
+- **Date Range Booking Suite (`src/range/`)**:
+  - `WheelDateRangeChoice`, `WheelDateRangeController`, `WheelDateRangeChoiceFormField`.
+  - Dual calendar date wheels with automatic boundary synchronization (`startDate <= endDate`).
+- **Cascading Selection Suite (`src/cascade/`)**:
+  - `WheelCascadeChoice<T>`, `WheelCascadeController<T>`, `WheelCascadeChoiceFormField<T>`.
+  - Multi-level dependent tree options (e.g. Country → State → City).
+- **Modal Dialog & Bottom Sheet Helpers (`src/dialog/`)**:
+  - `showWheelDatePicker`, `showWheelTimePicker`, `showWheelDateTimePicker`, `showWheelDurationPicker`.
+  - `showWheelModalSheet`: generic bottom sheet container with Cancel, Done, and custom wheel content.
 - **Showcase Example**:
-  - Overhauled `example/lib/main.dart` with 4 dedicated showcase sections: Date Picker, Time Picker, Subtree Theming, and Form Integration.
+  - Overhauled `example/lib/main.dart` with 6 dedicated interactive tabs.
 - **Tests**:
-  - Added test suites for date controllers, time controllers, subtree theming, date form field, and time form field.
+  - Comprehensive unit and widget test suite covering all 7 widget categories (47 tests passing).
