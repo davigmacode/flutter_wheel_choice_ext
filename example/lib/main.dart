@@ -27,7 +27,7 @@ class _ExampleAppState extends State<ExampleApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      title: 'wheel_choice_ext demo',
+      title: 'Wheel Choice Ext Showcase',
       theme: ThemeData(
         colorSchemeSeed: Colors.indigo,
         useMaterial3: true,
@@ -59,7 +59,7 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
   }
 
   @override
@@ -72,7 +72,7 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wheel Choice Ext Showcase'),
+        title: const Text('Wheel Choice Ext Suite'),
         actions: [
           Row(
             children: [
@@ -97,20 +97,24 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
           controller: _tabController,
           isScrollable: true,
           tabs: const [
-            Tab(icon: Icon(Icons.calendar_month), text: 'Date Picker'),
-            Tab(icon: Icon(Icons.access_time), text: 'Time Picker'),
-            Tab(icon: Icon(Icons.palette), text: 'Subtree Theming'),
-            Tab(icon: Icon(Icons.edit_calendar), text: 'Form Integration'),
+            Tab(icon: Icon(Icons.calendar_month), text: 'Date & Time'),
+            Tab(icon: Icon(Icons.timer_outlined), text: 'Duration'),
+            Tab(icon: Icon(Icons.numbers), text: 'Number / Weight'),
+            Tab(icon: Icon(Icons.date_range), text: 'Date Range'),
+            Tab(icon: Icon(Icons.account_tree_outlined), text: 'Cascade'),
+            Tab(icon: Icon(Icons.open_in_new), text: 'Dialogs & Sheets'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
         children: const [
-          _DatePickerTab(),
-          _TimePickerTab(),
-          _ThemingTab(),
-          _FormTab(),
+          _DateTimeTab(),
+          _DurationTab(),
+          _NumberTab(),
+          _RangeTab(),
+          _CascadeTab(),
+          _DialogsTab(),
         ],
       ),
     );
@@ -118,28 +122,31 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
 }
 
 // -----------------------------------------------------------------------------
-// TAB 1: DATE PICKER DEMO
+// TAB 1: DATE & TIME COMBINED
 // -----------------------------------------------------------------------------
-class _DatePickerTab extends StatefulWidget {
-  const _DatePickerTab();
+class _DateTimeTab extends StatefulWidget {
+  const _DateTimeTab();
 
   @override
-  State<_DatePickerTab> createState() => _DatePickerTabState();
+  State<_DateTimeTab> createState() => _DateTimeTabState();
 }
 
-class _DatePickerTabState extends State<_DatePickerTab> {
-  late final WheelDateController _dateCtrl;
-  WheelDateOrder? _order;
+class _DateTimeTabState extends State<_DateTimeTab> {
+  late final WheelDateTimeController _controller;
 
   @override
   void initState() {
     super.initState();
-    _dateCtrl = WheelDateController(value: DateTime.now());
+    _controller = WheelDateTimeController(
+      value: DateTime.now(),
+      use24hFormat: false,
+      minuteStep: 5,
+    );
   }
 
   @override
   void dispose() {
-    _dateCtrl.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -149,271 +156,37 @@ class _DatePickerTabState extends State<_DatePickerTab> {
       padding: const EdgeInsets.all(24),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
+          constraints: const BoxConstraints(maxWidth: 520),
           child: Column(
             children: [
-              // Order selector
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Date Order:'),
-                  DropdownButton<String>(
-                    value: _order == null
-                        ? 'locale'
-                        : (_order == WheelDateOrder.mdy
-                            ? 'mdy'
-                            : _order == WheelDateOrder.ymd
-                                ? 'ymd'
-                                : 'dmy'),
-                    items: const [
-                      DropdownMenuItem(value: 'locale', child: Text('Locale-aware')),
-                      DropdownMenuItem(value: 'dmy', child: Text('Day-Month-Year')),
-                      DropdownMenuItem(value: 'mdy', child: Text('Month-Day-Year')),
-                      DropdownMenuItem(value: 'ymd', child: Text('Year-Month-Day')),
-                    ],
-                    onChanged: (val) {
-                      setState(() {
-                        switch (val) {
-                          case 'dmy':
-                            _order = WheelDateOrder.dmy;
-                            break;
-                          case 'mdy':
-                            _order = WheelDateOrder.mdy;
-                            break;
-                          case 'ymd':
-                            _order = WheelDateOrder.ymd;
-                            break;
-                          default:
-                            _order = null;
-                        }
-                      });
-                    },
-                  ),
-                ],
+              const Text(
+                'WheelDateTimeChoice (Combined Date & Time)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 16),
-
               Card(
                 elevation: 0,
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                  child: WheelDateChoice.raw(
-                    controller: _dateCtrl,
+                  child: WheelDateTimeChoice.raw(
+                    controller: _controller,
                     itemExtent: 44,
                     itemVisible: 5,
-                    spacing: 8,
-                    order: _order,
-                    overlay: WheelOverlay.outlined(borderColor: Theme.of(context).colorScheme.primary),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Stepper controls
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _dateCtrl.previousDay(),
-                    icon: const Icon(Icons.remove, size: 16),
-                    label: const Text('Day'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _dateCtrl.nextDay(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Day'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _dateCtrl.previousMonth(),
-                    icon: const Icon(Icons.remove, size: 16),
-                    label: const Text('Month'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _dateCtrl.nextMonth(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Month'),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Reactive Display
-              ValueListenableBuilder<DateTime>(
-                valueListenable: _dateCtrl.valueListenable,
-                builder: (context, date, _) {
-                  return Text(
-                    'Selected Date: ${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// TAB 2: TIME PICKER DEMO
-// -----------------------------------------------------------------------------
-class _TimePickerTab extends StatefulWidget {
-  const _TimePickerTab();
-
-  @override
-  State<_TimePickerTab> createState() => _TimePickerTabState();
-}
-
-class _TimePickerTabState extends State<_TimePickerTab> {
-  bool _use24h = false;
-  int _minuteStep = 5;
-  late WheelTimeController _timeCtrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _initController();
-  }
-
-  void _initController() {
-    _timeCtrl = WheelTimeController(
-      value: const TimeOfDay(hour: 14, minute: 30),
-      use24hFormat: _use24h,
-      minuteStep: _minuteStep,
-    );
-  }
-
-  void _recreateController() {
-    final oldTime = _timeCtrl.value;
-    _timeCtrl.dispose();
-    _timeCtrl = WheelTimeController(
-      value: oldTime,
-      use24hFormat: _use24h,
-      minuteStep: _minuteStep,
-    );
-    setState(() {});
-  }
-
-  @override
-  void dispose() {
-    _timeCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('24-Hour Format:'),
-                  Switch(
-                    value: _use24h,
-                    onChanged: (val) {
-                      _use24h = val;
-                      _recreateController();
-                    },
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Minute Interval:'),
-                  DropdownButton<int>(
-                    value: _minuteStep,
-                    items: const [
-                      DropdownMenuItem(value: 1, child: Text('1 min')),
-                      DropdownMenuItem(value: 5, child: Text('5 min')),
-                      DropdownMenuItem(value: 15, child: Text('15 min')),
-                    ],
-                    onChanged: (s) {
-                      if (s != null) {
-                        _minuteStep = s;
-                        _recreateController();
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Card(
-                elevation: 0,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                  child: WheelTimeChoice.raw(
-                    key: ValueKey('time_${_use24h}_$_minuteStep'),
-                    controller: _timeCtrl,
-                    itemExtent: 44,
-                    itemVisible: 5,
-                    spacing: 8,
-                    overlay: WheelOverlay.outlined(borderColor: Theme.of(context).colorScheme.primary),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _timeCtrl.previousHour(),
-                    icon: const Icon(Icons.remove, size: 16),
-                    label: const Text('Hour'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _timeCtrl.nextHour(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Hour'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _timeCtrl.previousMinute(),
-                    icon: const Icon(Icons.remove, size: 16),
-                    label: const Text('Minute'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => _timeCtrl.nextMinute(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Minute'),
-                  ),
-                  if (!_use24h)
-                    OutlinedButton.icon(
-                      onPressed: () => _timeCtrl.togglePeriod(),
-                      icon: const Icon(Icons.swap_horiz, size: 16),
-                      label: const Text('AM/PM'),
+                    spacing: 6,
+                    overlay: WheelOverlay.outlined(
+                      borderColor: Theme.of(context).colorScheme.primary,
                     ),
-                ],
+                  ),
+                ),
               ),
-
-              const SizedBox(height: 20),
-
-              ValueListenableBuilder<TimeOfDay>(
-                valueListenable: _timeCtrl.valueListenable,
-                builder: (context, time, _) {
+              const SizedBox(height: 16),
+              ValueListenableBuilder<DateTime>(
+                valueListenable: _controller.valueListenable,
+                builder: (context, dt, _) {
                   return Text(
-                    'Selected Time: ${time.format(context)}',
+                    'Selected: ${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${TimeOfDay.fromDateTime(dt).format(context)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).colorScheme.primary,
@@ -430,10 +203,31 @@ class _TimePickerTabState extends State<_TimePickerTab> {
 }
 
 // -----------------------------------------------------------------------------
-// TAB 3: SUBTREE THEMING DEMO
+// TAB 2: DURATION / TIMER
 // -----------------------------------------------------------------------------
-class _ThemingTab extends StatelessWidget {
-  const _ThemingTab();
+class _DurationTab extends StatefulWidget {
+  const _DurationTab();
+
+  @override
+  State<_DurationTab> createState() => _DurationTabState();
+}
+
+class _DurationTabState extends State<_DurationTab> {
+  late final WheelDurationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WheelDurationController(
+      value: const Duration(hours: 1, minutes: 30, seconds: 0),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -442,186 +236,423 @@ class _ThemingTab extends StatelessWidget {
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 440),
+          child: Column(
+            children: [
+              const Text(
+                'WheelDurationChoice (Timer & Duration)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  child: WheelDurationChoice.raw(
+                    controller: _controller,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 12,
+                    itemLabel: WheelDurationLabel.suffix(),
+                    header: const WheelDurationHeader(
+                      hours: WheelHeader(child: Text('Hours')),
+                      minutes: WheelHeader(child: Text('Mins')),
+                      seconds: WheelHeader(child: Text('Secs')),
+                    ),
+                    overlay: WheelOverlay.outlined(
+                      borderColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<Duration>(
+                valueListenable: _controller.valueListenable,
+                builder: (context, dur, _) {
+                  final h = dur.inHours.toString().padLeft(2, '0');
+                  final m = (dur.inMinutes % 60).toString().padLeft(2, '0');
+                  final s = (dur.inSeconds % 60).toString().padLeft(2, '0');
+                  return Text(
+                    'Duration: $h:$m:$s (${dur.inMinutes} total minutes)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// TAB 3: NUMBER & WEIGHT/HEIGHT
+// -----------------------------------------------------------------------------
+class _NumberTab extends StatefulWidget {
+  const _NumberTab();
+
+  @override
+  State<_NumberTab> createState() => _NumberTabState();
+}
+
+class _NumberTabState extends State<_NumberTab> {
+  late final WheelNumberController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WheelNumberController(
+      value: 68.5,
+      min: 30,
+      max: 200,
+      precision: 1,
+      units: const ['kg', 'lbs'],
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: Column(
+            children: [
+              const Text(
+                'WheelNumberChoice (Integer + Decimal + Unit)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  child: WheelNumberChoice.raw(
+                    controller: _controller,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 8,
+                    header: const WheelNumberHeader(
+                      integer: WheelHeader(child: Text('Value')),
+                      decimal: WheelHeader(child: Text('Decimal')),
+                      unit: WheelHeader(child: Text('Unit')),
+                    ),
+                    overlay: WheelOverlay.outlined(
+                      borderColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<double>(
+                valueListenable: _controller.valueListenable,
+                builder: (context, val, _) {
+                  return Text(
+                    'Selected Weight: ${val.toStringAsFixed(1)} ${_controller.currentUnit ?? ''}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// TAB 4: DATE RANGE
+// -----------------------------------------------------------------------------
+class _RangeTab extends StatefulWidget {
+  const _RangeTab();
+
+  @override
+  State<_RangeTab> createState() => _RangeTabState();
+}
+
+class _RangeTabState extends State<_RangeTab> {
+  late final WheelDateRangeController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _controller = WheelDateRangeController(
+      value: DateTimeRange(start: now, end: now.add(const Duration(days: 7))),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 540),
+          child: Column(
+            children: [
+              const Text(
+                'WheelDateRangeChoice (Start & End Date Booking)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
+                  child: WheelDateRangeChoice.raw(
+                    controller: _controller,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 4,
+                    startHeader: const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text('Check-In', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    endHeader: const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text('Check-Out', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    overlay: WheelOverlay.outlined(
+                      borderColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<DateTimeRange>(
+                valueListenable: _controller.valueListenable,
+                builder: (context, r, _) {
+                  return Text(
+                    'Range: ${r.start.year}-${r.start.month}-${r.start.day}  →  ${r.end.year}-${r.end.month}-${r.end.day} (${r.duration.inDays} days)',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// TAB 5: CASCADE SELECTION
+// -----------------------------------------------------------------------------
+class _CascadeTab extends StatelessWidget {
+  const _CascadeTab();
+
+  static const sampleTree = [
+    WheelCascadeItem<String>(
+      value: 'USA',
+      label: 'United States',
+      children: [
+        WheelCascadeItem(
+          value: 'CA',
+          label: 'California',
+          children: [
+            WheelCascadeItem(value: 'LA', label: 'Los Angeles'),
+            WheelCascadeItem(value: 'SF', label: 'San Francisco'),
+            WheelCascadeItem(value: 'SD', label: 'San Diego'),
+          ],
+        ),
+        WheelCascadeItem(
+          value: 'NY',
+          label: 'New York',
+          children: [
+            WheelCascadeItem(value: 'NYC', label: 'New York City'),
+            WheelCascadeItem(value: 'BUF', label: 'Buffalo'),
+          ],
+        ),
+      ],
+    ),
+    WheelCascadeItem<String>(
+      value: 'ID',
+      label: 'Indonesia',
+      children: [
+        WheelCascadeItem(
+          value: 'JKT',
+          label: 'DKI Jakarta',
+          children: [
+            WheelCascadeItem(value: 'JS', label: 'Jakarta Selatan'),
+            WheelCascadeItem(value: 'JP', label: 'Jakarta Pusat'),
+            WheelCascadeItem(value: 'JB', label: 'Jakarta Barat'),
+          ],
+        ),
+        WheelCascadeItem(
+          value: 'JBR',
+          label: 'Jawa Barat',
+          children: [
+            WheelCascadeItem(value: 'BDG', label: 'Bandung'),
+            WheelCascadeItem(value: 'BKS', label: 'Bekasi'),
+            WheelCascadeItem(value: 'BGR', label: 'Bogor'),
+          ],
+        ),
+      ],
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            children: [
+              const Text(
+                'WheelCascadeChoice (Country → State → City)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  child: WheelCascadeChoice<String>(
+                    items: sampleTree,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 8,
+                    overlay: WheelOverlay.outlined(
+                      borderColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// TAB 6: MODAL DIALOGS & BOTTOM SHEETS
+// -----------------------------------------------------------------------------
+class _DialogsTab extends StatefulWidget {
+  const _DialogsTab();
+
+  @override
+  State<_DialogsTab> createState() => _DialogsTabState();
+}
+
+class _DialogsTabState extends State<_DialogsTab> {
+  String _result = 'None';
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Subtree Theming with WheelChoiceTheme',
+                'Ready-To-Use Modal Bottom Sheets',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Demonstrates how both Date and Time pickers effortlessly inherit custom itemExtent, 3D magnification effect, and overlays from a single ancestor theme.',
+                'Call instant Cupertino/Material modal sheets with Cancel & Done buttons without writing any boilerplate.',
                 style: TextStyle(color: Colors.grey),
               ),
-              const SizedBox(height: 20),
-
-              // Ancestor WheelChoiceTheme
-              WheelChoiceTheme(
-                data: WheelChoiceThemeData(
-                  itemExtent: 48,
-                  itemVisible: 5,
-                  effect: const WheelEffect(
-                    useMagnifier: true,
-                    magnification: 1.15,
-                    perspective: 0.007,
-                  ),
-                  overlay: WheelOverlay.filled(
-                    color: Colors.purple.withAlpha(35),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Card(
-                      elevation: 0,
-                      color: Colors.purple.shade50,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                        child: WheelDateChoice(
-                          value: DateTime(2025, 10, 21),
-                          spacing: 8,
-                        ),
-                      ),
+              const SizedBox(height: 24),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  final picked = await showWheelDatePicker(context: context);
+                  if (picked != null) {
+                    setState(() => _result = 'Date: ${picked.year}-${picked.month}-${picked.day}');
+                  }
+                },
+                icon: const Icon(Icons.calendar_today),
+                label: const Text('Pick Date Modal'),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  final picked = await showWheelTimePicker(context: context, use24hFormat: false);
+                  if (picked != null) {
+                    setState(() => _result = 'Time: ${picked.format(context)}');
+                  }
+                },
+                icon: const Icon(Icons.access_time),
+                label: const Text('Pick Time Modal'),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  final picked = await showWheelDateTimePicker(context: context, use24hFormat: false);
+                  if (picked != null) {
+                    setState(() => _result = 'Date & Time: $picked');
+                  }
+                },
+                icon: const Icon(Icons.more_time),
+                label: const Text('Pick Date & Time Modal'),
+              ),
+              const SizedBox(height: 12),
+              FilledButton.tonalIcon(
+                onPressed: () async {
+                  final picked = await showWheelDurationPicker(context: context);
+                  if (picked != null) {
+                    setState(() => _result = 'Duration: ${picked.inMinutes} mins');
+                  }
+                },
+                icon: const Icon(Icons.timer),
+                label: const Text('Pick Duration Modal'),
+              ),
+              const SizedBox(height: 24),
+              Card(
+                elevation: 0,
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Last Result: $_result',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
                     ),
-                    const SizedBox(height: 16),
-                    Card(
-                      elevation: 0,
-                      color: Colors.purple.shade50,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                        child: const WheelTimeChoice(
-                          value: TimeOfDay(hour: 18, minute: 45),
-                          use24hFormat: false,
-                          spacing: 8,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------------------
-// TAB 4: FORM FIELD INTEGRATION DEMO
-// -----------------------------------------------------------------------------
-class _FormTab extends StatefulWidget {
-  const _FormTab();
-
-  @override
-  State<_FormTab> createState() => _FormTabState();
-}
-
-class _FormTabState extends State<_FormTab> {
-  final _formKey = GlobalKey<FormState>();
-  DateTime? _bookedDate = DateTime.now();
-  TimeOfDay? _bookedTime = const TimeOfDay(hour: 10, minute: 0);
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 460),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Appointment Booking Form',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Demonstrates WheelDateChoiceFormField and WheelTimeChoiceFormField with automatic validation, decoration, and reset support.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                const SizedBox(height: 20),
-
-                WheelDateChoiceFormField(
-                  initialValue: _bookedDate,
-                  decoration: const InputDecoration(
-                    labelText: 'Appointment Date',
-                    border: OutlineInputBorder(),
-                    helperText: 'Must be on a weekday (Mon-Fri)',
-                  ),
-                  validator: (d) {
-                    if (d == null) return 'Please choose a date';
-                    if (d.weekday == DateTime.saturday || d.weekday == DateTime.sunday) {
-                      return 'Clinics are closed on weekends! Please select Mon-Fri.';
-                    }
-                    return null;
-                  },
-                  onSaved: (d) => _bookedDate = d,
-                ),
-
-                const SizedBox(height: 24),
-
-                WheelTimeChoiceFormField(
-                  initialValue: _bookedTime,
-                  use24hFormat: false,
-                  minuteStep: 15,
-                  decoration: const InputDecoration(
-                    labelText: 'Appointment Time',
-                    border: OutlineInputBorder(),
-                    helperText: 'Working hours: 09:00 AM - 05:00 PM',
-                  ),
-                  validator: (t) {
-                    if (t == null) return 'Please choose a time';
-                    if (t.hour < 9 || t.hour >= 17) {
-                      return 'Appointments must be between 9:00 AM and 5:00 PM';
-                    }
-                    return null;
-                  },
-                  onSaved: (t) => _bookedTime = t,
-                ),
-
-                const SizedBox(height: 24),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          _formKey.currentState!.reset();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Form reset to initial values')),
-                          );
-                        },
-                        child: const Text('Reset'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Appointment booked for ${_bookedDate!.year}-${_bookedDate!.month}-${_bookedDate!.day} at ${_bookedTime!.format(context)}',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text('Confirm Booking'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
         ),
       ),
