@@ -785,8 +785,16 @@ WheelDateRangeChoice(
 // -----------------------------------------------------------------------------
 // TAB 5: CASCADE SELECTION
 // -----------------------------------------------------------------------------
-class _CascadeTab extends StatelessWidget {
+class _CascadeTab extends StatefulWidget {
   const _CascadeTab();
+
+  @override
+  State<_CascadeTab> createState() => _CascadeTabState();
+}
+
+class _CascadeTabState extends State<_CascadeTab> {
+  late final WheelCascadeController<String> _syncCtrl;
+  late final WheelCascadeController<String> _asyncCtrl;
 
   static const sampleTree = [
     WheelCascadeItem<String>(
@@ -836,7 +844,135 @@ class _CascadeTab extends StatelessWidget {
         ),
       ],
     ),
+    WheelCascadeItem<String>(
+      value: 'JP',
+      label: 'Japan',
+      children: [
+        WheelCascadeItem(
+          value: 'KNT',
+          label: 'Kanto',
+          children: [
+            WheelCascadeItem(value: 'TKO', label: 'Tokyo'),
+            WheelCascadeItem(value: 'YKH', label: 'Yokohama'),
+          ],
+        ),
+        WheelCascadeItem(
+          value: 'KSK',
+          label: 'Kansai',
+          children: [
+            WheelCascadeItem(value: 'OSK', label: 'Osaka'),
+            WheelCascadeItem(value: 'KYT', label: 'Kyoto'),
+          ],
+        ),
+      ],
+    ),
   ];
+
+  static Future<List<WheelCascadeItem<String>>> _mockAsyncLoader(
+    int level,
+    List<String> selected,
+  ) async {
+    // Simulates remote network latency (350ms)
+    await Future.delayed(const Duration(milliseconds: 350));
+
+    if (level == 0) {
+      return const [
+        WheelCascadeItem(value: 'asia', label: 'Asia'),
+        WheelCascadeItem(value: 'europe', label: 'Europe'),
+        WheelCascadeItem(value: 'americas', label: 'Americas'),
+      ];
+    } else if (level == 1) {
+      final continent = selected.isNotEmpty ? selected[0] : 'asia';
+      switch (continent) {
+        case 'asia':
+          return const [
+            WheelCascadeItem(value: 'jp', label: 'Japan'),
+            WheelCascadeItem(value: 'id', label: 'Indonesia'),
+            WheelCascadeItem(value: 'kr', label: 'South Korea'),
+          ];
+        case 'europe':
+          return const [
+            WheelCascadeItem(value: 'de', label: 'Germany'),
+            WheelCascadeItem(value: 'fr', label: 'France'),
+            WheelCascadeItem(value: 'uk', label: 'United Kingdom'),
+          ];
+        case 'americas':
+        default:
+          return const [
+            WheelCascadeItem(value: 'us', label: 'United States'),
+            WheelCascadeItem(value: 'ca', label: 'Canada'),
+            WheelCascadeItem(value: 'br', label: 'Brazil'),
+          ];
+      }
+    } else {
+      final country = selected.length > 1 ? selected[1] : '';
+      switch (country) {
+        case 'jp':
+          return const [
+            WheelCascadeItem(value: 'tko', label: 'Tokyo'),
+            WheelCascadeItem(value: 'osk', label: 'Osaka'),
+          ];
+        case 'id':
+          return const [
+            WheelCascadeItem(value: 'jkt', label: 'Jakarta'),
+            WheelCascadeItem(value: 'sub', label: 'Surabaya'),
+          ];
+        case 'kr':
+          return const [
+            WheelCascadeItem(value: 'seo', label: 'Seoul'),
+            WheelCascadeItem(value: 'bus', label: 'Busan'),
+          ];
+        case 'de':
+          return const [
+            WheelCascadeItem(value: 'ber', label: 'Berlin'),
+            WheelCascadeItem(value: 'mun', label: 'Munich'),
+          ];
+        case 'fr':
+          return const [
+            WheelCascadeItem(value: 'par', label: 'Paris'),
+            WheelCascadeItem(value: 'lyo', label: 'Lyon'),
+          ];
+        case 'uk':
+          return const [
+            WheelCascadeItem(value: 'lon', label: 'London'),
+            WheelCascadeItem(value: 'man', label: 'Manchester'),
+          ];
+        case 'us':
+          return const [
+            WheelCascadeItem(value: 'was', label: 'Washington D.C.'),
+            WheelCascadeItem(value: 'nyc', label: 'New York'),
+          ];
+        case 'ca':
+          return const [
+            WheelCascadeItem(value: 'ott', label: 'Ottawa'),
+            WheelCascadeItem(value: 'tor', label: 'Toronto'),
+          ];
+        case 'br':
+        default:
+          return const [
+            WheelCascadeItem(value: 'bsb', label: 'Brasília'),
+            WheelCascadeItem(value: 'sao', label: 'São Paulo'),
+          ];
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncCtrl = WheelCascadeController<String>(items: sampleTree);
+    _asyncCtrl = WheelCascadeController<String>(
+      depth: 3,
+      optionsLoader: _mockAsyncLoader,
+    );
+  }
+
+  @override
+  void dispose() {
+    _syncCtrl.dispose();
+    _asyncCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -844,31 +980,56 @@ class _CascadeTab extends StatelessWidget {
     final cardColor = Theme.of(context).colorScheme.surfaceContainerHighest;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: _ExampleCard(
-            title: 'WheelCascadeChoice (Country → State → City)',
-            description: 'Tree-based cascading picker where each choice filters downstream options.',
-            picker: Card(
-              elevation: 0,
-              color: cardColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-                child: WheelCascadeChoice<String>(
-                  items: sampleTree,
-                  itemExtent: 44,
-                  itemVisible: 5,
-                  spacing: 8,
-                  overlay: WheelOverlay.outlined(borderColor: primaryColor),
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Column(
+            children: [
+              // 1. SYNCHRONOUS TREE CASCADE
+              _ExampleCard(
+                title: 'WheelCascadeChoice (Sync Tree)',
+                description:
+                    'Hierarchical cascading tree where each selection instantly cascades downstream options.',
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                    child: WheelCascadeChoice<String>.raw(
+                      controller: _syncCtrl,
+                      itemExtent: 44,
+                      itemVisible: 5,
+                      spacing: 8,
+                      header: const [
+                        WheelHeader(child: Text('Country')),
+                        WheelHeader(child: Text('State / Prov')),
+                        WheelHeader(child: Text('City')),
+                      ],
+                      overlay: WheelOverlay.outlined(borderColor: primaryColor),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            code: '''// Hierarchical Cascading Picker
+                result: ValueListenableBuilder<List<String>>(
+                  valueListenable: _syncCtrl.valueListenable,
+                  builder: (context, values, _) {
+                    final labels = <String>[];
+                    for (var i = 0; i < values.length; i++) {
+                      labels.add(_syncCtrl.labelFor(i, values[i]));
+                    }
+                    return Text(
+                      'Selected: ${labels.join('  ›  ')} (${values.join(' / ')})',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                    );
+                  },
+                ),
+                code: '''// Synchronous Cascading Tree
 WheelCascadeChoice<String>(
-  items: [
+  items: const [
     WheelCascadeItem(
       value: 'ID',
       label: 'Indonesia',
@@ -878,6 +1039,7 @@ WheelCascadeChoice<String>(
           label: 'DKI Jakarta',
           children: [
             WheelCascadeItem(value: 'JS', label: 'Jakarta Selatan'),
+            WheelCascadeItem(value: 'JP', label: 'Jakarta Pusat'),
           ],
         ),
       ],
@@ -886,11 +1048,86 @@ WheelCascadeChoice<String>(
   itemExtent: 44,
   itemVisible: 5,
   spacing: 8,
+  header: const [
+    WheelHeader(child: Text('Country')),
+    WheelHeader(child: Text('State / Prov')),
+    WheelHeader(child: Text('City')),
+  ],
   overlay: WheelOverlay.outlined(),
-  onChanged: (List<String?> path) {
+  onChanged: (List<String> path) {
     print('Selected Path: \$path');
   },
 )''',
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 2. ASYNCHRONOUS API CASCADE
+              _ExampleCard(
+                title: 'WheelCascadeChoice.builder (Async Loader)',
+                description:
+                    'Dynamic async data fetching per level with built-in loading spinners and race condition handling.',
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                    child: WheelCascadeChoice<String>.raw(
+                      controller: _asyncCtrl,
+                      itemExtent: 44,
+                      itemVisible: 5,
+                      spacing: 8,
+                      header: const [
+                        WheelHeader(child: Text('Continent')),
+                        WheelHeader(child: Text('Country')),
+                        WheelHeader(child: Text('City')),
+                      ],
+                      overlay: WheelOverlay.outlined(borderColor: primaryColor),
+                    ),
+                  ),
+                ),
+                result: ValueListenableBuilder<List<String>>(
+                  valueListenable: _asyncCtrl.valueListenable,
+                  builder: (context, values, _) {
+                    final labels = <String>[];
+                    for (var i = 0; i < values.length; i++) {
+                      labels.add(_asyncCtrl.labelFor(i, values[i]));
+                    }
+                    return Text(
+                      'Async Selected: ${labels.join('  ›  ')} (${values.join(' / ')})',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: primaryColor,
+                          ),
+                    );
+                  },
+                ),
+                code: '''// Asynchronous Dynamic Cascading Picker
+WheelCascadeChoice<String>.builder(
+  depth: 3,
+  optionsLoader: (int level, List<String> selected) async {
+    // Fetch options from API based on upstream selections
+    if (level == 0) return await api.fetchContinents();
+    if (level == 1) return await api.fetchCountries(continent: selected[0]);
+    return await api.fetchCities(country: selected[1]);
+  },
+  itemExtent: 44,
+  itemVisible: 5,
+  spacing: 8,
+  header: const [
+    WheelHeader(child: Text('Continent')),
+    WheelHeader(child: Text('Country')),
+    WheelHeader(child: Text('City')),
+  ],
+  overlay: WheelOverlay.outlined(),
+  onChanged: (List<String> path) {
+    print('Async Path: \$path');
+  },
+)''',
+              ),
+            ],
           ),
         ),
       ),
