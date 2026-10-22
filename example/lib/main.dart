@@ -1039,6 +1039,95 @@ class _ExampleCardState extends State<_ExampleCard> {
   }
 }
 
+class _DartSyntaxHighlighter {
+  static const _keywordColor = Color(0xFFC678DD);
+  static const _typeColor = Color(0xFFE5C07B);
+  static const _stringColor = Color(0xFF98C379);
+  static const _commentColor = Color(0xFF7F848E);
+  static const _numberColor = Color(0xFFD19A66);
+  static const _paramColor = Color(0xFFE06C75);
+  static const _defaultColor = Color(0xFFABB2BF);
+
+  static final _tokenRegex = RegExp(
+    r'(?<comment>//[^\n]*)'
+    r'|(?<string>\x27[^\x27\n]*\x27|"[^"\n]*")'
+    r'|(?<param>\b[a-zA-Z_][a-zA-Z0-9_]*(?=\s*:))'
+    r'|(?<keyword>\b(?:final|const|await|async|var|void|return|class|extends|with|implements|import|as|new|true|false|null|if|else|for|in|while|do|switch|case|default|break|continue|static|super|this|is|required)\b)'
+    r'|(?<number>\b\d+(?:\.\d+)?\b)'
+    r'|(?<type>\b[A-Z][a-zA-Z0-9_]*\b)',
+  );
+
+  static TextSpan format(String code) {
+    final spans = <TextSpan>[];
+    int lastEnd = 0;
+
+    for (final match in _tokenRegex.allMatches(code)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: code.substring(lastEnd, match.start),
+          style: const TextStyle(color: _defaultColor),
+        ));
+      }
+
+      final matchedText = match.group(0)!;
+      if (match.namedGroup('comment') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _commentColor, fontStyle: FontStyle.italic),
+        ));
+      } else if (match.namedGroup('string') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _stringColor),
+        ));
+      } else if (match.namedGroup('param') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _paramColor),
+        ));
+      } else if (match.namedGroup('keyword') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _keywordColor, fontWeight: FontWeight.w600),
+        ));
+      } else if (match.namedGroup('number') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _numberColor),
+        ));
+      } else if (match.namedGroup('type') != null) {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _typeColor),
+        ));
+      } else {
+        spans.add(TextSpan(
+          text: matchedText,
+          style: const TextStyle(color: _defaultColor),
+        ));
+      }
+
+      lastEnd = match.end;
+    }
+
+    if (lastEnd < code.length) {
+      spans.add(TextSpan(
+        text: code.substring(lastEnd),
+        style: const TextStyle(color: _defaultColor),
+      ));
+    }
+
+    return TextSpan(
+      style: const TextStyle(
+        fontFamily: 'monospace',
+        fontSize: 12.5,
+        height: 1.45,
+      ),
+      children: spans,
+    );
+  }
+}
+
 class _CodeBox extends StatelessWidget {
   const _CodeBox({required this.code});
 
@@ -1119,14 +1208,8 @@ class _CodeBox extends StatelessWidget {
           const Divider(height: 1, color: Colors.white12),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: SelectableText(
-              code,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 12.5,
-                height: 1.45,
-                color: Color(0xFFE2E8F0),
-              ),
+            child: SelectableText.rich(
+              _DartSyntaxHighlighter.format(code),
             ),
           ),
         ],
