@@ -195,56 +195,22 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
     final effectiveHaptics = widget.haptics ?? theme?.haptics;
 
     final label = widget.itemLabel ?? WheelTimeLabel.of(context);
+    final hasHeader = widget.header != null;
+    final headers = <Widget>[];
+    final wheels = <Widget>[];
 
-    final hourPicker = Flexible(
-      flex: _flex.hour,
-      child: WheelChoice<int>.raw(
-        itemExtent: effectiveItemExtent,
-        itemVisible: effectiveItemVisible,
-        itemLabel: label.hour,
-        itemBuilder: widget.itemBuilder?.hour,
-        header: widget.header?.hourX,
-        expanded: widget.expanded,
-        effect: effectiveEffect,
-        physics: effectivePhysics,
-        clipBehavior: effectiveClipBehavior,
-        keyboard: effectiveKeyboard,
-        focusNode: widget.focusNode,
-        haptics: effectiveHaptics,
-        controller: _ctrl.hour,
-      ),
-    );
-
-    final minutePicker = Flexible(
-      flex: _flex.minute,
-      child: WheelChoice<int>.raw(
-        itemExtent: effectiveItemExtent,
-        itemVisible: effectiveItemVisible,
-        itemLabel: label.minute,
-        itemBuilder: widget.itemBuilder?.minute,
-        header: widget.header?.minuteX,
-        expanded: widget.expanded,
-        effect: effectiveEffect,
-        physics: effectivePhysics,
-        clipBehavior: effectiveClipBehavior,
-        keyboard: effectiveKeyboard,
-        focusNode: widget.focusNode,
-        haptics: effectiveHaptics,
-        controller: _ctrl.minute,
-      ),
-    );
-
-    final columns = <Widget>[hourPicker, minutePicker];
-
-    if (!_ctrl.use24hFormat && _ctrl.period != null) {
-      final periodPicker = Flexible(
-        flex: _flex.period,
-        child: WheelChoice<WheelTimePeriod>.raw(
+    if (hasHeader && widget.header!.hourX != null) {
+      headers.add(Flexible(flex: _flex.hour, child: widget.header!.hourX!));
+    }
+    wheels.add(
+      Flexible(
+        flex: _flex.hour,
+        child: WheelChoice<int>.raw(
           itemExtent: effectiveItemExtent,
           itemVisible: effectiveItemVisible,
-          itemLabel: label.period ?? (p) => p.label,
-          itemBuilder: widget.itemBuilder?.period,
-          header: widget.header?.periodX,
+          itemLabel: label.hour,
+          itemBuilder: widget.itemBuilder?.hour,
+          overlay: (ctx) => const SizedBox.shrink(),
           expanded: widget.expanded,
           effect: effectiveEffect,
           physics: effectivePhysics,
@@ -252,20 +218,84 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
           keyboard: effectiveKeyboard,
           focusNode: widget.focusNode,
           haptics: effectiveHaptics,
-          controller: _ctrl.period!,
+          controller: _ctrl.hour,
+        ),
+      ),
+    );
+
+    if (hasHeader && widget.header!.minuteX != null) {
+      headers.add(Flexible(flex: _flex.minute, child: widget.header!.minuteX!));
+    }
+    wheels.add(
+      Flexible(
+        flex: _flex.minute,
+        child: WheelChoice<int>.raw(
+          itemExtent: effectiveItemExtent,
+          itemVisible: effectiveItemVisible,
+          itemLabel: label.minute,
+          itemBuilder: widget.itemBuilder?.minute,
+          overlay: (ctx) => const SizedBox.shrink(),
+          expanded: widget.expanded,
+          effect: effectiveEffect,
+          physics: effectivePhysics,
+          clipBehavior: effectiveClipBehavior,
+          keyboard: effectiveKeyboard,
+          focusNode: widget.focusNode,
+          haptics: effectiveHaptics,
+          controller: _ctrl.minute,
+        ),
+      ),
+    );
+
+    if (!_ctrl.use24hFormat && _ctrl.period != null) {
+      if (hasHeader && widget.header!.periodX != null) {
+        headers.add(Flexible(flex: _flex.period, child: widget.header!.periodX!));
+      }
+      wheels.add(
+        Flexible(
+          flex: _flex.period,
+          child: WheelChoice<WheelTimePeriod>.raw(
+            itemExtent: effectiveItemExtent,
+            itemVisible: effectiveItemVisible,
+            itemLabel: label.period ?? (p) => p.label,
+            itemBuilder: widget.itemBuilder?.period,
+            overlay: (ctx) => const SizedBox.shrink(),
+            expanded: widget.expanded,
+            effect: effectiveEffect,
+            physics: effectivePhysics,
+            clipBehavior: effectiveClipBehavior,
+            keyboard: effectiveKeyboard,
+            focusNode: widget.focusNode,
+            haptics: effectiveHaptics,
+            controller: _ctrl.period!,
+          ),
         ),
       );
-      columns.add(periodPicker);
     }
 
-    return WheelOverlay(
+    final wheelsOverlay = WheelOverlay(
       builder: effectiveOverlay,
-      offset: widget.header?.extentX,
       extent: effectiveItemExtent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: _withSpacing(columns, widget.spacing ?? 0),
+        children: _withSpacing(wheels, widget.spacing ?? 0),
       ),
     );
+
+    if (hasHeader && headers.isNotEmpty) {
+      final headersRow = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _withSpacing(headers, widget.spacing ?? 0),
+      );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          headersRow,
+          widget.expanded == true ? Expanded(child: wheelsOverlay) : wheelsOverlay,
+        ],
+      );
+    }
+
+    return wheelsOverlay;
   }
 }

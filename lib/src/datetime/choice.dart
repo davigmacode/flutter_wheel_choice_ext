@@ -239,6 +239,8 @@ class _WheelDateTimeChoiceState extends State<WheelDateTimeChoice> {
     final effectiveKeyboard = widget.keyboard ?? theme?.keyboard;
     final effectiveHaptics = widget.haptics ?? theme?.haptics;
 
+    final hasHeader = widget.dateHeader != null || widget.timeHeader != null;
+
     final dateWidget = WheelDateChoice.raw(
       controller: _ctrl.date,
       itemExtent: effectiveItemExtent,
@@ -255,6 +257,7 @@ class _WheelDateTimeChoiceState extends State<WheelDateTimeChoice> {
       keyboard: effectiveKeyboard,
       focusNode: widget.focusNode,
       haptics: effectiveHaptics,
+      overlay: (ctx) => const SizedBox.shrink(),
     );
 
     final timeWidget = WheelTimeChoice.raw(
@@ -272,6 +275,7 @@ class _WheelDateTimeChoiceState extends State<WheelDateTimeChoice> {
       keyboard: effectiveKeyboard,
       focusNode: widget.focusNode,
       haptics: effectiveHaptics,
+      overlay: (ctx) => const SizedBox.shrink(),
     );
 
     final separator = widget.separator ??
@@ -283,20 +287,27 @@ class _WheelDateTimeChoiceState extends State<WheelDateTimeChoice> {
           ),
         );
 
-    return WheelOverlay(
-      builder: effectiveOverlay,
-      extent: effectiveItemExtent,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(flex: 5, child: dateWidget),
-          separator,
-          Expanded(
-            flex: _ctrl.use24hFormat ? 3 : 4,
-            child: timeWidget,
-          ),
-        ],
-      ),
+    final content = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(flex: 5, child: dateWidget),
+        separator,
+        Expanded(
+          flex: _ctrl.use24hFormat ? 3 : 4,
+          child: timeWidget,
+        ),
+      ],
     );
+
+    if (effectiveOverlay != null) {
+      return WheelOverlay(
+        builder: effectiveOverlay,
+        offset: hasHeader ? (widget.dateHeader?.extentX ?? widget.timeHeader?.extentX ?? 40.0) : null,
+        extent: effectiveItemExtent,
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

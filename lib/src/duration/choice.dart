@@ -196,17 +196,22 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
     final effectiveHaptics = widget.haptics ?? theme?.haptics;
 
     final label = widget.itemLabel ?? WheelDurationLabel.padded();
-    final columns = <Widget>[];
+    final hasHeader = widget.header != null;
+    final headers = <Widget>[];
+    final wheels = <Widget>[];
 
     if (_ctrl.showHours) {
-      columns.add(
+      if (hasHeader && widget.header!.hoursX != null) {
+        headers.add(Flexible(child: widget.header!.hoursX!));
+      }
+      wheels.add(
         Flexible(
           child: WheelChoice<int>.raw(
             controller: _ctrl.hours,
             itemExtent: effectiveItemExtent,
             itemVisible: effectiveItemVisible,
             itemLabel: label.hours,
-            header: widget.header?.hoursX,
+            overlay: (ctx) => const SizedBox.shrink(),
             effect: effectiveEffect,
             physics: effectivePhysics,
             clipBehavior: effectiveClipBehavior,
@@ -219,14 +224,17 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
     }
 
     if (_ctrl.showMinutes) {
-      columns.add(
+      if (hasHeader && widget.header!.minutesX != null) {
+        headers.add(Flexible(child: widget.header!.minutesX!));
+      }
+      wheels.add(
         Flexible(
           child: WheelChoice<int>.raw(
             controller: _ctrl.minutes,
             itemExtent: effectiveItemExtent,
             itemVisible: effectiveItemVisible,
             itemLabel: label.minutes,
-            header: widget.header?.minutesX,
+            overlay: (ctx) => const SizedBox.shrink(),
             effect: effectiveEffect,
             physics: effectivePhysics,
             clipBehavior: effectiveClipBehavior,
@@ -239,14 +247,17 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
     }
 
     if (_ctrl.showSeconds) {
-      columns.add(
+      if (hasHeader && widget.header!.secondsX != null) {
+        headers.add(Flexible(child: widget.header!.secondsX!));
+      }
+      wheels.add(
         Flexible(
           child: WheelChoice<int>.raw(
             controller: _ctrl.seconds,
             itemExtent: effectiveItemExtent,
             itemVisible: effectiveItemVisible,
             itemLabel: label.seconds,
-            header: widget.header?.secondsX,
+            overlay: (ctx) => const SizedBox.shrink(),
             effect: effectiveEffect,
             physics: effectivePhysics,
             clipBehavior: effectiveClipBehavior,
@@ -258,13 +269,29 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
       );
     }
 
-    return WheelOverlay(
+    final wheelsOverlay = WheelOverlay(
       builder: effectiveOverlay,
       extent: effectiveItemExtent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: _withSpacing(columns, widget.spacing ?? 0),
+        children: _withSpacing(wheels, widget.spacing ?? 0),
       ),
     );
+
+    if (hasHeader && headers.isNotEmpty) {
+      final headersRow = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _withSpacing(headers, widget.spacing ?? 0),
+      );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          headersRow,
+          wheelsOverlay,
+        ],
+      );
+    }
+
+    return wheelsOverlay;
   }
 }

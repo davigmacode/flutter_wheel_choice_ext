@@ -203,17 +203,22 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
     final effectiveKeyboard = widget.keyboard ?? theme?.keyboard;
     final effectiveHaptics = widget.haptics ?? theme?.haptics;
 
-    final columns = <Widget>[];
+    final hasHeader = widget.header != null;
+    final headers = <Widget>[];
+    final wheels = <Widget>[];
 
     // Integer column
-    columns.add(
+    if (hasHeader && widget.header!.integerX != null) {
+      headers.add(Flexible(flex: 4, child: widget.header!.integerX!));
+    }
+    wheels.add(
       Flexible(
         flex: 4,
         child: WheelChoice<int>.raw(
           controller: _ctrl.integer,
           itemExtent: effectiveItemExtent,
           itemVisible: effectiveItemVisible,
-          header: widget.header?.integerX,
+          overlay: (ctx) => const SizedBox.shrink(),
           effect: effectiveEffect,
           physics: effectivePhysics,
           clipBehavior: effectiveClipBehavior,
@@ -226,7 +231,10 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
 
     // Decimal column (if precision > 0)
     if (_ctrl.decimal != null) {
-      columns.add(
+      if (hasHeader) {
+        headers.add(const SizedBox(width: 8));
+      }
+      wheels.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text(
@@ -236,7 +244,10 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
         ),
       );
 
-      columns.add(
+      if (hasHeader && widget.header!.decimalX != null) {
+        headers.add(Flexible(flex: 3, child: widget.header!.decimalX!));
+      }
+      wheels.add(
         Flexible(
           flex: 3,
           child: WheelChoice<int>.raw(
@@ -244,7 +255,7 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
             itemExtent: effectiveItemExtent,
             itemVisible: effectiveItemVisible,
             itemLabel: (v) => v.toString().padLeft(_ctrl.precision, '0'),
-            header: widget.header?.decimalX,
+            overlay: (ctx) => const SizedBox.shrink(),
             effect: effectiveEffect,
             physics: effectivePhysics,
             clipBehavior: effectiveClipBehavior,
@@ -258,14 +269,17 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
 
     // Unit column (if units provided)
     if (_ctrl.unit != null) {
-      columns.add(
+      if (hasHeader && widget.header!.unitX != null) {
+        headers.add(Flexible(flex: 3, child: widget.header!.unitX!));
+      }
+      wheels.add(
         Flexible(
           flex: 3,
           child: WheelChoice<String>.raw(
             controller: _ctrl.unit!,
             itemExtent: effectiveItemExtent,
             itemVisible: effectiveItemVisible,
-            header: widget.header?.unitX,
+            overlay: (ctx) => const SizedBox.shrink(),
             effect: effectiveEffect,
             physics: effectivePhysics,
             clipBehavior: effectiveClipBehavior,
@@ -277,13 +291,29 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
       );
     }
 
-    return WheelOverlay(
+    final wheelsOverlay = WheelOverlay(
       builder: effectiveOverlay,
       extent: effectiveItemExtent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: _withSpacing(columns, widget.spacing ?? 0),
+        children: _withSpacing(wheels, widget.spacing ?? 0),
       ),
     );
+
+    if (hasHeader && headers.isNotEmpty) {
+      final headersRow = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _withSpacing(headers, widget.spacing ?? 0),
+      );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          headersRow,
+          wheelsOverlay,
+        ],
+      );
+    }
+
+    return wheelsOverlay;
   }
 }

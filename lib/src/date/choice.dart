@@ -171,23 +171,18 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
   @override
   void initState() {
     super.initState();
-    // Lazy: do not create internal controller here; wait until first use.
   }
 
   @override
   void didUpdateWidget(covariant WheelDateChoice oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // If switching from internal to external controller, dispose internal.
     if (oldWidget.controller == null && widget.controller != null) {
       _defaultCtrl?.dispose();
       _defaultCtrl = null;
     }
 
-    // If using internal controller, update it based on param changes.
     if (widget.controller == null) {
-      // Create internal if not yet created and needed later.
-      // For value change, keep options stable and jump to the new date.
       if (widget.value != null && widget.value != oldWidget.value) {
         _defaultCtrl?.jumpToDate(widget.value!, notify: false);
       }
@@ -224,7 +219,6 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
   @override
   void dispose() {
-    // Dispose internal controller if we created one.
     _defaultCtrl?.dispose();
     _defaultCtrl = null;
     super.dispose();
@@ -263,7 +257,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: effectiveItemVisible,
         itemLabel: label.day,
         itemBuilder: widget.itemBuilder?.day,
-        header: widget.header?.dayX,
+        overlay: (ctx) => const SizedBox.shrink(),
         expanded: widget.expanded,
         effect: effectiveEffect,
         physics: effectivePhysics,
@@ -282,7 +276,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: effectiveItemVisible,
         itemLabel: label.month,
         itemBuilder: widget.itemBuilder?.month,
-        header: widget.header?.monthX,
+        overlay: (ctx) => const SizedBox.shrink(),
         expanded: widget.expanded,
         effect: effectiveEffect,
         physics: effectivePhysics,
@@ -301,7 +295,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
         itemVisible: effectiveItemVisible,
         itemLabel: label.year,
         itemBuilder: widget.itemBuilder?.year,
-        header: widget.header?.yearX,
+        overlay: (ctx) => const SizedBox.shrink(),
         expanded: widget.expanded,
         effect: effectiveEffect,
         physics: effectivePhysics,
@@ -315,16 +309,38 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
     final order = widget.order ?? WheelDateOrder.of(context);
     final pickers = [dayPicker, monthPicker, yearPicker];
-    final children = order.callback(pickers);
+    final orderedPickers = order.callback(pickers);
 
-    return WheelOverlay(
+    final wheelsOverlay = WheelOverlay(
       builder: effectiveOverlay,
-      offset: widget.header?.extentX,
       extent: effectiveItemExtent,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: _withSpacing(children, widget.spacing ?? 0),
+        children: _withSpacing(orderedPickers, widget.spacing ?? 0),
       ),
     );
+
+    if (widget.header != null) {
+      final headers = [
+        Flexible(flex: _flex.day, child: widget.header!.dayX),
+        Flexible(flex: _flex.month, child: widget.header!.monthX),
+        Flexible(flex: _flex.year, child: widget.header!.yearX),
+      ];
+      final orderedHeaders = order.callback(headers);
+      final headersRow = Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: _withSpacing(orderedHeaders, widget.spacing ?? 0),
+      );
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          headersRow,
+          widget.expanded == true ? Expanded(child: wheelsOverlay) : wheelsOverlay,
+        ],
+      );
+    }
+
+    return wheelsOverlay;
   }
 }

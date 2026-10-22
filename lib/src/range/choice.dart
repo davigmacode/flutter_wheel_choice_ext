@@ -198,52 +198,44 @@ class _WheelDateRangeChoiceState extends State<WheelDateRangeChoice> {
     final effectiveKeyboard = widget.keyboard ?? theme?.keyboard;
     final effectiveHaptics = widget.haptics ?? theme?.haptics;
 
-    final startPicker = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.startHeader != null) widget.startHeader!,
-        WheelDateChoice.raw(
-          controller: _ctrl.start,
-          itemExtent: effectiveItemExtent,
-          itemVisible: effectiveItemVisible,
-          itemBuilder: widget.dateBuilder,
-          itemLabel: widget.dateLabel,
-          flex: widget.dateFlex,
-          header: widget.dateHeader,
-          order: widget.dateOrder,
-          effect: effectiveEffect,
-          spacing: widget.spacing,
-          physics: effectivePhysics,
-          clipBehavior: effectiveClipBehavior,
-          keyboard: effectiveKeyboard,
-          focusNode: widget.focusNode,
-          haptics: effectiveHaptics,
-        ),
-      ],
+    final hasCustomHeaders = widget.startHeader != null || widget.endHeader != null;
+
+    final startPicker = WheelDateChoice.raw(
+      controller: _ctrl.start,
+      itemExtent: effectiveItemExtent,
+      itemVisible: effectiveItemVisible,
+      itemBuilder: widget.dateBuilder,
+      itemLabel: widget.dateLabel,
+      flex: widget.dateFlex,
+      header: widget.dateHeader,
+      order: widget.dateOrder,
+      effect: effectiveEffect,
+      spacing: widget.spacing,
+      physics: effectivePhysics,
+      clipBehavior: effectiveClipBehavior,
+      keyboard: effectiveKeyboard,
+      focusNode: widget.focusNode,
+      haptics: effectiveHaptics,
+      overlay: (ctx) => const SizedBox.shrink(),
     );
 
-    final endPicker = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.endHeader != null) widget.endHeader!,
-        WheelDateChoice.raw(
-          controller: _ctrl.end,
-          itemExtent: effectiveItemExtent,
-          itemVisible: effectiveItemVisible,
-          itemBuilder: widget.dateBuilder,
-          itemLabel: widget.dateLabel,
-          flex: widget.dateFlex,
-          header: widget.dateHeader,
-          order: widget.dateOrder,
-          effect: effectiveEffect,
-          spacing: widget.spacing,
-          physics: effectivePhysics,
-          clipBehavior: effectiveClipBehavior,
-          keyboard: effectiveKeyboard,
-          focusNode: widget.focusNode,
-          haptics: effectiveHaptics,
-        ),
-      ],
+    final endPicker = WheelDateChoice.raw(
+      controller: _ctrl.end,
+      itemExtent: effectiveItemExtent,
+      itemVisible: effectiveItemVisible,
+      itemBuilder: widget.dateBuilder,
+      itemLabel: widget.dateLabel,
+      flex: widget.dateFlex,
+      header: widget.dateHeader,
+      order: widget.dateOrder,
+      effect: effectiveEffect,
+      spacing: widget.spacing,
+      physics: effectivePhysics,
+      clipBehavior: effectiveClipBehavior,
+      keyboard: effectiveKeyboard,
+      focusNode: widget.focusNode,
+      haptics: effectiveHaptics,
+      overlay: (ctx) => const SizedBox.shrink(),
     );
 
     final separator = widget.separator ??
@@ -255,17 +247,42 @@ class _WheelDateRangeChoiceState extends State<WheelDateRangeChoice> {
           ),
         );
 
-    return WheelOverlay(
-      builder: effectiveOverlay,
-      extent: effectiveItemExtent,
-      child: Row(
+    final wheelsContent = Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(child: startPicker),
+        separator,
+        Expanded(child: endPicker),
+      ],
+    );
+
+    final wheelsWithOverlay = effectiveOverlay != null
+        ? WheelOverlay(
+            builder: effectiveOverlay,
+            extent: effectiveItemExtent,
+            child: wheelsContent,
+          )
+        : wheelsContent;
+
+    if (hasCustomHeaders) {
+      final headersRow = Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(child: startPicker),
-          separator,
-          Expanded(child: endPicker),
+          Expanded(child: widget.startHeader ?? const SizedBox.shrink()),
+          SizedBox(width: (widget.spacing ?? 8) * 2 + 1),
+          Expanded(child: widget.endHeader ?? const SizedBox.shrink()),
         ],
-      ),
-    );
+      );
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          headersRow,
+          wheelsWithOverlay,
+        ],
+      );
+    }
+
+    return wheelsWithOverlay;
   }
 }
