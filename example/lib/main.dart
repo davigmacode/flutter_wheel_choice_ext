@@ -60,7 +60,7 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
   }
 
   @override
@@ -105,6 +105,7 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
             Tab(icon: Icon(Icons.numbers), text: 'Number / Weight'),
             Tab(icon: Icon(Icons.date_range), text: 'Date Range'),
             Tab(icon: Icon(Icons.account_tree_outlined), text: 'Cascade'),
+            Tab(icon: Icon(Icons.tune), text: 'Customization'),
             Tab(icon: Icon(Icons.open_in_new), text: 'Dialogs & Sheets'),
           ],
         ),
@@ -117,6 +118,7 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
           _NumberTab(),
           _RangeTab(),
           _CascadeTab(),
+          _CustomizationTab(),
           _DialogsTab(),
         ],
       ),
@@ -1136,7 +1138,785 @@ WheelCascadeChoice<String>.builder(
 }
 
 // -----------------------------------------------------------------------------
-// TAB 6: MODAL DIALOGS & BOTTOM SHEETS
+// TAB 6: CUSTOMIZATION & FLEXIBILITY
+// -----------------------------------------------------------------------------
+class _CustomizationTab extends StatefulWidget {
+  const _CustomizationTab();
+
+  @override
+  State<_CustomizationTab> createState() => _CustomizationTabState();
+}
+
+class _PaymentItem {
+  const _PaymentItem({
+    required this.id,
+    required this.name,
+    required this.subtitle,
+    required this.icon,
+    this.badge,
+    this.badgeColor,
+  });
+
+  final String id;
+  final String name;
+  final String subtitle;
+  final IconData icon;
+  final String? badge;
+  final Color? badgeColor;
+}
+
+class _ColorItem {
+  const _ColorItem({
+    required this.name,
+    required this.hex,
+    required this.color,
+  });
+
+  final String name;
+  final String hex;
+  final Color color;
+}
+
+class _CustomizationTabState extends State<_CustomizationTab> {
+  // 1. Playground State
+  bool _isCylinder = true;
+  double _magnification = 1.15;
+  double _squeeze = 1.1;
+  double _opacity = 0.5;
+  double _itemExtent = 44;
+  final int _itemVisible = 5;
+  final bool _loop = false;
+  int _overlayStyleIndex = 0; // 0: Outlined, 1: Filled, 2: Dual Divider, 3: Gradient Glow
+
+  late final WheelController<String> _playgroundCtrl;
+  String _selectedMonth = 'July';
+
+  // 2. Rich Item State
+  late final WheelController<String> _paymentCtrl;
+  String _selectedPayment = 'visa';
+
+  // 3. Color Swatch State
+  late final WheelController<int> _colorCtrl;
+  int _selectedColorIndex = 0;
+
+  static const _months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  static const _paymentMethods = [
+    _PaymentItem(
+      id: 'visa',
+      name: 'Visa Card',
+      subtitle: '•••• 4242 (Personal)',
+      icon: Icons.credit_card,
+      badge: 'Default',
+      badgeColor: Color(0xFF10B981),
+    ),
+    _PaymentItem(
+      id: 'mc',
+      name: 'Mastercard',
+      subtitle: '•••• 8821 (Corporate)',
+      icon: Icons.credit_card,
+      badge: null,
+      badgeColor: null,
+    ),
+    _PaymentItem(
+      id: 'paypal',
+      name: 'PayPal Account',
+      subtitle: 'user@example.com',
+      icon: Icons.account_balance_wallet,
+      badge: 'Verified',
+      badgeColor: Color(0xFF3B82F6),
+    ),
+    _PaymentItem(
+      id: 'apple',
+      name: 'Apple Pay',
+      subtitle: 'Touch ID / Face ID',
+      icon: Icons.phone_iphone,
+      badge: 'Fast',
+      badgeColor: Color(0xFF8B5CF6),
+    ),
+    _PaymentItem(
+      id: 'crypto',
+      name: 'Crypto Vault',
+      subtitle: 'USDC / ETH / BTC',
+      icon: Icons.currency_bitcoin,
+      badge: null,
+      badgeColor: null,
+    ),
+  ];
+
+  static const _colorSwatches = [
+    _ColorItem(name: 'Electric Indigo', hex: '#6366F1', color: Color(0xFF6366F1)),
+    _ColorItem(name: 'Emerald Green', hex: '#10B981', color: Color(0xFF10B981)),
+    _ColorItem(name: 'Amber Gold', hex: '#F59E0B', color: Color(0xFFF59E0B)),
+    _ColorItem(name: 'Crimson Red', hex: '#EF4444', color: Color(0xFFEF4444)),
+    _ColorItem(name: 'Cyber Violet', hex: '#8B5CF6', color: Color(0xFF8B5CF6)),
+    _ColorItem(name: 'Neon Cyan', hex: '#06B6D4', color: Color(0xFF06B6D4)),
+    _ColorItem(name: 'Rose Pink', hex: '#EC4899', color: Color(0xFFEC4899)),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _playgroundCtrl = WheelController<String>(
+      options: _months,
+      value: _selectedMonth,
+      loop: _loop,
+      onChanged: (v) => setState(() => _selectedMonth = v),
+    );
+    _paymentCtrl = WheelController<String>(
+      options: _paymentMethods.map((e) => e.id).toList(),
+      value: _selectedPayment,
+      onChanged: (v) => setState(() => _selectedPayment = v),
+    );
+    _colorCtrl = WheelController<int>(
+      options: List.generate(_colorSwatches.length, (i) => i),
+      value: _selectedColorIndex,
+      onChanged: (v) => setState(() => _selectedColorIndex = v),
+    );
+  }
+
+  @override
+  void dispose() {
+    _playgroundCtrl.dispose();
+    _paymentCtrl.dispose();
+    _colorCtrl.dispose();
+    super.dispose();
+  }
+
+  WidgetBuilder? _buildPlaygroundOverlay(Color primaryColor) {
+    switch (_overlayStyleIndex) {
+      case 0:
+        return WheelOverlay.delegate(
+          border: Border.all(color: primaryColor, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        );
+      case 1:
+        return WheelOverlay.filled(
+          color: primaryColor.withValues(alpha: 0.12),
+          cornerRadius: 12,
+        );
+      case 2:
+        return WheelOverlay.outlined(
+          borderColor: primaryColor.withValues(alpha: 0.5),
+        );
+      case 3:
+        return (context) => Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  colors: [
+                    primaryColor.withValues(alpha: 0.2),
+                    Colors.transparent,
+                    primaryColor.withValues(alpha: 0.2),
+                  ],
+                ),
+                border: Border.all(
+                  color: primaryColor.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withValues(alpha: 0.25),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            );
+      default:
+        return null;
+    }
+  }
+
+  String get _overlayName {
+    switch (_overlayStyleIndex) {
+      case 0:
+        return 'WheelOverlay.outlined(...)';
+      case 1:
+        return 'WheelOverlay.filled(...)';
+      case 2:
+        return 'Cupertino Dual Dividers';
+      case 3:
+        return 'Gradient Glow Border';
+      default:
+        return 'None';
+    }
+  }
+
+  Widget _buildPaymentRow(
+    BuildContext context,
+    WheelItem<String> item,
+    Color primaryColor,
+  ) {
+    final pay = _paymentMethods.firstWhere((e) => e.id == item.data);
+    final isSelected = item.selected;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      alignment: Alignment.center,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? primaryColor.withValues(alpha: 0.15)
+                  : Colors.grey.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              pay.icon,
+              size: 20,
+              color: isSelected ? primaryColor : Colors.grey,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  pay.name,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 14,
+                    color: isSelected ? null : Colors.grey,
+                  ),
+                ),
+                Text(
+                  pay.subtitle,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isSelected ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (pay.badge != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: (pay.badgeColor ?? primaryColor)
+                    .withValues(alpha: isSelected ? 0.2 : 0.1),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: (pay.badgeColor ?? primaryColor)
+                      .withValues(alpha: isSelected ? 0.6 : 0.3),
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                pay.badge!,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: pay.badgeColor ?? primaryColor,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColorRow(BuildContext context, WheelItem<int> item) {
+    final swatch = _colorSwatches[item.data];
+    final isSelected = item.selected;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(
+              color: swatch.color,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.white : Colors.white54,
+                width: isSelected ? 2.5 : 1.2,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: swatch.color.withValues(alpha: 0.6),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              swatch.name,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Text(
+            swatch.hex,
+            style: const TextStyle(
+              fontFamily: 'Consolas',
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+
+    final currentEffect = _isCylinder
+        ? WheelEffect(
+            useMagnifier: true,
+            magnification: _magnification,
+            squeeze: _squeeze,
+            perspective: 0.003,
+            overAndUnderCenterOpacity: _opacity,
+          )
+        : WheelEffect.flat(
+            useMagnifier: true,
+            magnification: _magnification,
+            squeeze: _squeeze,
+            overAndUnderCenterOpacity: _opacity,
+          );
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 520),
+          child: Column(
+            children: [
+              // 1. LIVE INTERACTIVE PLAYGROUND
+              _ExampleCard(
+                title: 'Visual Effect & Overlay Studio (Playground)',
+                description:
+                    'Adjust 3D cylinder depth, squeeze, edge opacity, and overlay styles dynamically.',
+                controls: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 3D Curvature
+                    const Text('3D Geometry:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(value: true, label: Text('Cylinder 3D'), icon: Icon(Icons.view_in_ar)),
+                        ButtonSegment(value: false, label: Text('Flat 2D'), icon: Icon(Icons.crop_portrait)),
+                      ],
+                      selected: {_isCylinder},
+                      onSelectionChanged: (v) => setState(() => _isCylinder = v.first),
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Overlay Style
+                    const Text('Selection Overlay:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Outlined'),
+                          selected: _overlayStyleIndex == 0,
+                          onSelected: (_) => setState(() => _overlayStyleIndex = 0),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Filled Tint'),
+                          selected: _overlayStyleIndex == 1,
+                          onSelected: (_) => setState(() => _overlayStyleIndex = 1),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Dual Dividers'),
+                          selected: _overlayStyleIndex == 2,
+                          onSelected: (_) => setState(() => _overlayStyleIndex = 2),
+                        ),
+                        ChoiceChip(
+                          label: const Text('Neon Glow'),
+                          selected: _overlayStyleIndex == 3,
+                          onSelected: (_) => setState(() => _overlayStyleIndex = 3),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Sliders
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Magnification: ${_magnification.toStringAsFixed(2)}x',
+                                  style: const TextStyle(fontSize: 12)),
+                              Slider(
+                                value: _magnification,
+                                min: 1.0,
+                                max: 1.4,
+                                divisions: 8,
+                                onChanged: (v) => setState(() => _magnification = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Squeeze: ${_squeeze.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Slider(
+                                value: _squeeze,
+                                min: 0.8,
+                                max: 1.4,
+                                divisions: 6,
+                                onChanged: (v) => setState(() => _squeeze = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Fade Opacity: ${_opacity.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 12)),
+                              Slider(
+                                value: _opacity,
+                                min: 0.2,
+                                max: 1.0,
+                                divisions: 8,
+                                onChanged: (v) => setState(() => _opacity = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Row Height: ${_itemExtent.toInt()}px',
+                                  style: const TextStyle(fontSize: 12)),
+                              Slider(
+                                value: _itemExtent,
+                                min: 36,
+                                max: 60,
+                                divisions: 6,
+                                onChanged: (v) => setState(() => _itemExtent = v),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    child: SizedBox(
+                      height: _itemExtent * _itemVisible,
+                      child: WheelChoice<String>.raw(
+                        key: ValueKey('$_isCylinder-$_overlayStyleIndex-$_itemExtent-$_itemVisible-$_loop'),
+                        controller: _playgroundCtrl,
+                        itemExtent: _itemExtent,
+                        itemVisible: _itemVisible,
+                        effect: currentEffect,
+                        overlay: _buildPlaygroundOverlay(primaryColor),
+                      ),
+                    ),
+                  ),
+                ),
+                result: Text(
+                  'Selected: $_selectedMonth (Overlay: $_overlayName)',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                ),
+                code: '''// Custom 3D Effect & Overlay Configuration
+WheelChoice<String>(
+  options: const ['January', 'February', 'March', ...],
+  value: '$_selectedMonth',
+  itemExtent: ${_itemExtent.toInt()},
+  itemVisible: $_itemVisible,
+  effect: const WheelEffect${_isCylinder ? '' : '.flat'}(
+    useMagnifier: true,
+    magnification: ${_magnification.toStringAsFixed(2)},
+    squeeze: ${_squeeze.toStringAsFixed(2)},
+    overAndUnderCenterOpacity: ${_opacity.toStringAsFixed(2)},
+  ),
+  overlay: ${_overlayStyleIndex == 0 ? "WheelOverlay.outlined(borderColor: primaryColor)" : _overlayStyleIndex == 1 ? "WheelOverlay.filled(color: primaryColor.withValues(alpha: 0.12))" : "// Custom widget builder\n  (context) => Container(...)"},
+  onChanged: (String month) {
+    print('Selected: \$month');
+  },
+)''',
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 2. RICH ITEM BUILDER (PAYMENT METHODS)
+              _ExampleCard(
+                title: 'Rich Item Builder (Icons, Subtitles & Badges)',
+                description:
+                    'Replace plain strings with full Flutter widget trees using `itemBuilder` and `WheelItem`.',
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                    child: SizedBox(
+                      height: 52.0 * 5,
+                      child: WheelChoice<String>.raw(
+                        controller: _paymentCtrl,
+                        itemExtent: 52,
+                        itemVisible: 5,
+                        effect: const WheelEffect(
+                          useMagnifier: true,
+                          magnification: 1.08,
+                          squeeze: 1.1,
+                          perspective: 0.003,
+                        ),
+                        overlay: WheelOverlay.delegate(
+                          border: Border.all(color: primaryColor, width: 1.5),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        itemBuilder: (context, item) =>
+                            _buildPaymentRow(context, item, primaryColor),
+                      ),
+                    ),
+                  ),
+                ),
+                result: Text(
+                  'Payment Selected: ${_paymentMethods.firstWhere((e) => e.id == _selectedPayment).name}',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: primaryColor,
+                      ),
+                ),
+                code: '''// Custom Rich Row Builder (Payment Method Wheel)
+WheelChoice<String>(
+  options: const ['visa', 'mc', 'paypal', 'apple', 'crypto'],
+  value: '$_selectedPayment',
+  itemExtent: 52,
+  itemVisible: 5,
+  overlay: WheelOverlay.outlined(borderRadius: BorderRadius.circular(14)),
+  itemBuilder: (BuildContext context, WheelItem<String> item) {
+    final isSelected = item.selected;
+    final payment = getPaymentById(item.data);
+
+    return Row(
+      children: [
+        Icon(payment.icon, color: isSelected ? primaryColor : Colors.grey),
+        const SizedBox(width: 14),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(payment.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+            Text(payment.subtitle, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+          ],
+        ),
+        if (payment.badge != null)
+          Badge(label: Text(payment.badge!)),
+      ],
+    );
+  },
+)''',
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 3. COLOR PALETTE SWATCH CHOOSER
+              _ExampleCard(
+                title: 'Color Palette & Hex Swatch Wheel',
+                description:
+                    'Dynamic color indicators with circular glowing shadows on active items.',
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                    child: SizedBox(
+                      height: 48.0 * 5,
+                      child: WheelChoice<int>.raw(
+                        controller: _colorCtrl,
+                        itemExtent: 48,
+                        itemVisible: 5,
+                        effect: const WheelEffect(
+                          useMagnifier: true,
+                          magnification: 1.1,
+                          squeeze: 1.15,
+                        ),
+                        overlay: WheelOverlay.filled(
+                          color: _colorSwatches[_selectedColorIndex].color.withValues(alpha: 0.15),
+                          cornerRadius: 12,
+                        ),
+                        itemBuilder: (context, item) => _buildColorRow(context, item),
+                      ),
+                    ),
+                  ),
+                ),
+                result: Text(
+                  'Color: ${_colorSwatches[_selectedColorIndex].name} (${_colorSwatches[_selectedColorIndex].hex})',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _colorSwatches[_selectedColorIndex].color,
+                      ),
+                ),
+                code: '''// Custom Color Swatch Selector
+WheelChoice<int>(
+  options: const [0, 1, 2, 3, 4, 5, 6],
+  itemExtent: 48,
+  itemVisible: 5,
+  itemBuilder: (context, item) {
+    final swatch = colorSwatches[item.data];
+    return Row(
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: swatch.color,
+            shape: BoxShape.circle,
+            boxShadow: item.selected ? [BoxShadow(color: swatch.color.withValues(alpha: 0.6), blurRadius: 8)] : null,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(swatch.name),
+        const Spacer(),
+        Text(swatch.hex, style: const TextStyle(fontFamily: 'Consolas')),
+      ],
+    );
+  },
+)''',
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 4. WHEEL CHOICE THEME (GLOBAL INHERITANCE)
+              _ExampleCard(
+                title: 'WheelChoiceTheme (Ambient Styling Inheritance)',
+                description:
+                    'Wrap multiple pickers in a theme provider to propagate height, visible count, and overlay seamlessly.',
+                picker: Card(
+                  elevation: 0,
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                    child: WheelChoiceTheme(
+                      data: WheelChoiceThemeData(
+                        itemExtent: 46,
+                        itemVisible: 5,
+                        effect: const WheelEffect(
+                          useMagnifier: true,
+                          magnification: 1.12,
+                          squeeze: 1.15,
+                          perspective: 0.003,
+                        ),
+                        overlay: WheelOverlay.delegate(
+                          border: Border.all(
+                            color: Colors.tealAccent.shade700,
+                            width: 1.5,
+                          ),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Inheriting Teal Outlined Theme & 46px Height:',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 12),
+                          WheelTimeChoice(
+                            value: const TimeOfDay(hour: 14, minute: 30),
+                            use24hFormat: true,
+                            spacing: 12,
+                            header: const WheelTimeHeader(
+                              hour: WheelHeader(child: Text('HH')),
+                              minute: WheelHeader(child: Text('MM')),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                result: const Text(
+                  'Theme applied via WheelChoiceThemeData',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal),
+                ),
+                code: '''// Propagating Styles via WheelChoiceTheme
+WheelChoiceTheme(
+  data: WheelChoiceThemeData(
+    itemExtent: 46,
+    itemVisible: 5,
+    effect: const WheelEffect(
+      useMagnifier: true,
+      magnification: 1.12,
+      squeeze: 1.15,
+    ),
+    overlay: WheelOverlay.outlined(
+      borderColor: Colors.tealAccent.shade700,
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: WheelTimeChoice(
+    value: TimeOfDay.now(),
+    use24hFormat: true,
+  ),
+)''',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// -----------------------------------------------------------------------------
+// TAB 7: MODAL DIALOGS & BOTTOM SHEETS
 // -----------------------------------------------------------------------------
 class _DialogsTab extends StatefulWidget {
   const _DialogsTab();
