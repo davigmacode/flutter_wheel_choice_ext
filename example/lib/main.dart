@@ -96,6 +96,8 @@ class _HomePageState extends State<_HomePage> with SingleTickerProviderStateMixi
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          padding: EdgeInsets.zero,
           tabs: const [
             Tab(icon: Icon(Icons.calendar_month), text: 'Date & Time'),
             Tab(icon: Icon(Icons.timer_outlined), text: 'Duration'),
@@ -132,13 +134,21 @@ class _DateTimeTab extends StatefulWidget {
 }
 
 class _DateTimeTabState extends State<_DateTimeTab> {
-  late final WheelDateTimeController _controller;
+  late final WheelDateController _dateController;
+  late final WheelTimeController _timeController;
+  late final WheelDateTimeController _dateTimeController;
 
   @override
   void initState() {
     super.initState();
-    _controller = WheelDateTimeController(
-      value: DateTime.now(),
+    final now = DateTime.now();
+    _dateController = WheelDateController(value: now);
+    _timeController = WheelTimeController(
+      value: TimeOfDay.fromDateTime(now),
+      use24hFormat: false,
+    );
+    _dateTimeController = WheelDateTimeController(
+      value: now,
       use24hFormat: false,
       minuteStep: 5,
     );
@@ -146,19 +156,111 @@ class _DateTimeTabState extends State<_DateTimeTab> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _dateController.dispose();
+    _timeController.dispose();
+    _dateTimeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final cardColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: Column(
             children: [
+              // 1. DATE ONLY
+              const Text(
+                'WheelDateChoice (Date Only)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: cardColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  child: WheelDateChoice.raw(
+                    controller: _dateController,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 12,
+                    header: const WheelDateHeader(
+                      day: WheelHeader(child: Text('Day')),
+                      month: WheelHeader(child: Text('Month')),
+                      year: WheelHeader(child: Text('Year')),
+                    ),
+                    overlay: WheelOverlay.outlined(borderColor: primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ValueListenableBuilder<DateTime>(
+                valueListenable: _dateController.valueListenable,
+                builder: (context, d, _) {
+                  return Text(
+                    'Selected Date: ${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                  );
+                },
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 2. TIME ONLY
+              const Text(
+                'WheelTimeChoice (Time Only)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Card(
+                elevation: 0,
+                color: cardColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  child: WheelTimeChoice.raw(
+                    controller: _timeController,
+                    itemExtent: 44,
+                    itemVisible: 5,
+                    spacing: 12,
+                    header: const WheelTimeHeader(
+                      hour: WheelHeader(child: Text('Hour')),
+                      minute: WheelHeader(child: Text('Minute')),
+                      period: WheelHeader(child: Text('Period')),
+                    ),
+                    overlay: WheelOverlay.outlined(borderColor: primaryColor),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ValueListenableBuilder<TimeOfDay>(
+                valueListenable: _timeController.valueListenable,
+                builder: (context, t, _) {
+                  return Text(
+                    'Selected Time: ${t.format(context)}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: primaryColor,
+                        ),
+                  );
+                },
+              ),
+              const SizedBox(height: 36),
+              const Divider(),
+              const SizedBox(height: 36),
+
+              // 3. COMBINED DATE & TIME
               const Text(
                 'WheelDateTimeChoice (Combined Date & Time)',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
@@ -166,30 +268,28 @@ class _DateTimeTabState extends State<_DateTimeTab> {
               const SizedBox(height: 16),
               Card(
                 elevation: 0,
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: cardColor,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                   child: WheelDateTimeChoice.raw(
-                    controller: _controller,
+                    controller: _dateTimeController,
                     itemExtent: 44,
                     itemVisible: 5,
                     spacing: 6,
-                    overlay: WheelOverlay.outlined(
-                      borderColor: Theme.of(context).colorScheme.primary,
-                    ),
+                    overlay: WheelOverlay.outlined(borderColor: primaryColor),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               ValueListenableBuilder<DateTime>(
-                valueListenable: _controller.valueListenable,
+                valueListenable: _dateTimeController.valueListenable,
                 builder: (context, dt, _) {
                   return Text(
                     'Selected: ${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${TimeOfDay.fromDateTime(dt).format(context)}',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
+                          color: primaryColor,
                         ),
                   );
                 },
