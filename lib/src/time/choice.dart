@@ -154,11 +154,27 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
     }
 
     if (widget.controller == null) {
-      if (widget.value != null && widget.value != oldWidget.value) {
-        _defaultCtrl?.jumpToTime(widget.value!, notify: false);
-      }
-      if (widget.onChanged != oldWidget.onChanged) {
-        _ctrl.setOnChanged(widget.onChanged);
+      final configChanged = widget.use24hFormat != oldWidget.use24hFormat ||
+          widget.minuteStep != oldWidget.minuteStep ||
+          widget.loop != oldWidget.loop;
+
+      if (configChanged && _defaultCtrl != null) {
+        final currentVal = widget.value ?? _defaultCtrl!.value;
+        _defaultCtrl?.dispose();
+        _defaultCtrl = WheelTimeController(
+          value: currentVal,
+          use24hFormat: widget.use24hFormat ?? true,
+          minuteStep: widget.minuteStep ?? 1,
+          onChanged: widget.onChanged,
+          loop: widget.loop,
+        );
+      } else {
+        if (widget.value != null && widget.value != oldWidget.value) {
+          _defaultCtrl?.jumpToTime(widget.value!, notify: false);
+        }
+        if (widget.onChanged != oldWidget.onChanged) {
+          _ctrl.setOnChanged(widget.onChanged);
+        }
       }
     }
   }

@@ -85,5 +85,57 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Timer must be at least 15 minutes'), findsOneWidget);
     });
+
+    test('supports days metric and stepping helpers', () async {
+      final controller = WheelDurationController(
+        value: const Duration(days: 3, hours: 4, minutes: 15),
+        showDays: true,
+      );
+
+      expect(controller.value.inDays, equals(3));
+      expect(controller.days.value, equals(3));
+      expect(controller.hours.value, equals(4));
+
+      await controller.nextDay(animate: false);
+      expect(controller.value.inDays, equals(4));
+
+      await controller.previousDay(animate: false);
+      expect(controller.value.inDays, equals(3));
+
+      controller.jumpToDuration(const Duration(days: 7, hours: 2));
+      expect(controller.value.inDays, equals(7));
+
+      controller.dispose();
+    });
+
+    testWidgets('WheelDurationChoice renders variable columns when metrics are toggled', (tester) async {
+      // 4 columns: days, hours, minutes, seconds
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WheelDurationChoice(
+              value: Duration(days: 1, hours: 2, minutes: 3, seconds: 4),
+              showDays: true,
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(WheelChoice<int>), findsNWidgets(4));
+
+      // 2 columns: minutes & seconds only (e.g. cooking timer)
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: WheelDurationChoice(
+              value: Duration(minutes: 10, seconds: 30),
+              showHours: false,
+              showMinutes: true,
+              showSeconds: true,
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(WheelChoice<int>), findsNWidgets(2));
+    });
   });
 }

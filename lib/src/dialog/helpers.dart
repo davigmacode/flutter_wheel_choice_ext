@@ -214,9 +214,12 @@ Future<DateTime?> showWheelDateTimePicker({
 Future<Duration?> showWheelDurationPicker({
   required BuildContext context,
   Duration? initialDuration,
+  int maxDays = 30,
   int maxHours = 23,
+  int dayStep = 1,
   int minuteStep = 1,
   int secondStep = 1,
+  bool showDays = false,
   bool showHours = true,
   bool showMinutes = true,
   bool showSeconds = true,
@@ -237,9 +240,12 @@ Future<Duration?> showWheelDurationPicker({
       onSelected(tempDur);
       ctrl = WheelDurationController(
         value: dur,
+        maxDays: maxDays,
         maxHours: maxHours,
+        dayStep: dayStep,
         minuteStep: minuteStep,
         secondStep: secondStep,
+        showDays: showDays,
         showHours: showHours,
         showMinutes: showMinutes,
         showSeconds: showSeconds,

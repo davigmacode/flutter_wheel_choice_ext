@@ -2,14 +2,17 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:wheel_choice/wheel_choice.dart';
 
-/// Controller to programmatically manipulate a duration wheel (hours, minutes, seconds).
+/// Controller to programmatically manipulate a duration wheel (days, hours, minutes, seconds).
 class WheelDurationController {
   /// Creates a controller for duration wheels.
   WheelDurationController({
     required Duration value,
+    this.maxDays = 30,
     this.maxHours = 23,
+    this.dayStep = 1,
     this.minuteStep = 1,
     this.secondStep = 1,
+    this.showDays = false,
     this.showHours = true,
     this.showMinutes = true,
     this.showSeconds = true,
@@ -18,8 +21,15 @@ class WheelDurationController {
   })  : initialValue = value,
         _onChanged = onChanged,
         _valueNotifier = ValueNotifier<Duration>(value),
+        days = WheelController<int>(
+          value: value.inDays.clamp(0, maxDays),
+          options: [for (var i = 0; i <= maxDays; i += (dayStep <= 0 ? 1 : dayStep)) i],
+          loop: loop ?? false,
+        ),
         hours = WheelController<int>(
-          value: value.inHours.clamp(0, maxHours),
+          value: showDays
+              ? (value.inHours % 24).clamp(0, maxHours)
+              : value.inHours.clamp(0, maxHours),
           options: [for (var i = 0; i <= maxHours; i++) i],
           loop: loop ?? false,
         ),
@@ -39,14 +49,23 @@ class WheelDurationController {
   /// Initial duration configured at creation.
   final Duration initialValue;
 
+  /// Maximum selectable days (e.g. 30, 99).
+  final int maxDays;
+
   /// Maximum selectable hours (e.g. 23, 99).
   final int maxHours;
+
+  /// Day interval step.
+  final int dayStep;
 
   /// Minute interval step.
   final int minuteStep;
 
   /// Second interval step.
   final int secondStep;
+
+  /// Whether to display the days column.
+  final bool showDays;
 
   /// Whether to display the hours column.
   final bool showHours;
@@ -56,6 +75,9 @@ class WheelDurationController {
 
   /// Whether to display the seconds column.
   final bool showSeconds;
+
+  /// Controller for the days wheel.
+  final WheelController<int> days;
 
   /// Controller for the hours wheel.
   final WheelController<int> hours;
@@ -96,15 +118,20 @@ class WheelDurationController {
 
   /// Jumps wheels to the provided [duration] without animation.
   void jumpToDuration(Duration duration, {bool notify = true}) {
-    final h = duration.inHours.clamp(0, maxHours);
+    final d = duration.inDays.clamp(0, maxDays);
+    final h = showDays
+        ? (duration.inHours % 24).clamp(0, maxHours)
+        : duration.inHours.clamp(0, maxHours);
     final m = _nearestStep(duration.inMinutes % 60, minuteStep);
     final s = _nearestStep(duration.inSeconds % 60, secondStep);
 
+    if (showDays) days.jumpToValue(d, notify: notify);
     if (showHours) hours.jumpToValue(h, notify: notify);
     if (showMinutes) minutes.jumpToValue(m, notify: notify);
     if (showSeconds) seconds.jumpToValue(s, notify: notify);
 
     final resolved = Duration(
+      days: showDays ? d : 0,
       hours: showHours ? h : 0,
       minutes: showMinutes ? m : 0,
       seconds: showSeconds ? s : 0,
@@ -122,11 +149,17 @@ class WheelDurationController {
     Curve curve = Curves.ease,
     bool notify = true,
   }) async {
-    final h = duration.inHours.clamp(0, maxHours);
+    final d = duration.inDays.clamp(0, maxDays);
+    final h = showDays
+        ? (duration.inHours % 24).clamp(0, maxHours)
+        : duration.inHours.clamp(0, maxHours);
     final m = _nearestStep(duration.inMinutes % 60, minuteStep);
     final s = _nearestStep(duration.inSeconds % 60, secondStep);
 
     final futures = <Future<void>>[];
+    if (showDays) {
+      futures.add(days.animateToValue(d, duration: animDuration, curve: curve, notify: notify));
+    }
     if (showHours) {
       futures.add(hours.animateToValue(h, duration: animDuration, curve: curve, notify: notify));
     }
@@ -139,6 +172,7 @@ class WheelDurationController {
 
     await Future.wait(futures);
     final resolved = Duration(
+      days: showDays ? d : 0,
       hours: showHours ? h : 0,
       minutes: showMinutes ? m : 0,
       seconds: showSeconds ? s : 0,
@@ -148,6 +182,14 @@ class WheelDurationController {
       _onChanged?.call(resolved);
     }
   }
+
+  /// Moves the days wheel to the next item.
+  Future<bool> nextDay({bool animate = true, Duration? duration, Curve? curve}) =>
+      days.next(animate: animate, duration: duration, curve: curve);
+
+  /// Moves the days wheel to the previous item.
+  Future<bool> previousDay({bool animate = true, Duration? duration, Curve? curve}) =>
+      days.previous(animate: animate, duration: duration, curve: curve);
 
   /// Moves the hours wheel to the next item.
   Future<bool> nextHour({bool animate = true, Duration? duration, Curve? curve}) =>
@@ -175,14 +217,16 @@ class WheelDurationController {
 
   void _handleValueChanged() {
     void emitChange() {
+      final d = showDays ? (days.value ?? 0) : 0;
       final h = showHours ? (hours.value ?? 0) : 0;
       final m = showMinutes ? (minutes.value ?? 0) : 0;
       final s = showSeconds ? (seconds.value ?? 0) : 0;
-      final resolved = Duration(hours: h, minutes: m, seconds: s);
+      final resolved = Duration(days: d, hours: h, minutes: m, seconds: s);
       _valueNotifier.value = resolved;
       _onChanged?.call(resolved);
     }
 
+    days.setOnChanged((_) => emitChange());
     hours.setOnChanged((_) => emitChange());
     minutes.setOnChanged((_) => emitChange());
     seconds.setOnChanged((_) => emitChange());
@@ -191,6 +235,7 @@ class WheelDurationController {
   /// Disposes controllers and notifiers.
   void dispose() {
     _valueNotifier.dispose();
+    days.dispose();
     hours.dispose();
     minutes.dispose();
     seconds.dispose();
