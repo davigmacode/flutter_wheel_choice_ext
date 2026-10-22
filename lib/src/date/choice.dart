@@ -250,7 +250,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
     final label = widget.itemLabel ?? WheelDateLabel.of(context);
 
-    final dayPicker = Flexible(
+    final dayPicker = Expanded(
       flex: _flex.day,
       child: WheelChoice<int>.raw(
         itemExtent: effectiveItemExtent,
@@ -269,7 +269,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
       ),
     );
 
-    final monthPicker = Flexible(
+    final monthPicker = Expanded(
       flex: _flex.month,
       child: WheelChoice<int>.raw(
         itemExtent: effectiveItemExtent,
@@ -288,7 +288,7 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
       ),
     );
 
-    final yearPicker = Flexible(
+    final yearPicker = Expanded(
       flex: _flex.year,
       child: WheelChoice<int>.raw(
         itemExtent: effectiveItemExtent,
@@ -322,9 +322,9 @@ class _WheelDateChoiceState extends State<WheelDateChoice> {
 
     if (widget.header != null) {
       final headers = [
-        Flexible(flex: _flex.day, child: widget.header!.dayX),
-        Flexible(flex: _flex.month, child: widget.header!.monthX),
-        Flexible(flex: _flex.year, child: widget.header!.yearX),
+        Expanded(flex: _flex.day, child: widget.header!.dayX),
+        Expanded(flex: _flex.month, child: widget.header!.monthX),
+        Expanded(flex: _flex.year, child: widget.header!.yearX),
       ];
       final orderedHeaders = order.callback(headers);
       final headersRow = Row(

@@ -1,9 +1,9 @@
 /// Flex factors for day, month, and year columns.
 class WheelDateFlex {
-  /// Creates flex configuration with defaults 3:4:4 for D:M:Y.
+  /// Creates flex configuration with defaults 3:5:4 for D:M:Y.
   const WheelDateFlex({
     this.day = 3,
-    this.month = 4,
+    this.month = 5,
     this.year = 4,
   });
 

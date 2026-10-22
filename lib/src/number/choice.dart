@@ -209,10 +209,10 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
 
     // Integer column
     if (hasHeader && widget.header!.integerX != null) {
-      headers.add(Flexible(flex: 4, child: widget.header!.integerX!));
+      headers.add(Expanded(flex: 4, child: widget.header!.integerX!));
     }
     wheels.add(
-      Flexible(
+      Expanded(
         flex: 4,
         child: WheelChoice<int>.raw(
           controller: _ctrl.integer,
@@ -245,10 +245,10 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
       );
 
       if (hasHeader && widget.header!.decimalX != null) {
-        headers.add(Flexible(flex: 3, child: widget.header!.decimalX!));
+        headers.add(Expanded(flex: 3, child: widget.header!.decimalX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           flex: 3,
           child: WheelChoice<int>.raw(
             controller: _ctrl.decimal!,
@@ -270,10 +270,10 @@ class _WheelNumberChoiceState extends State<WheelNumberChoice> {
     // Unit column (if units provided)
     if (_ctrl.unit != null) {
       if (hasHeader && widget.header!.unitX != null) {
-        headers.add(Flexible(flex: 3, child: widget.header!.unitX!));
+        headers.add(Expanded(flex: 3, child: widget.header!.unitX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           flex: 3,
           child: WheelChoice<String>.raw(
             controller: _ctrl.unit!,

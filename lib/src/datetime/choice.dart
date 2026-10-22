@@ -36,11 +36,13 @@ class WheelDateTimeChoice extends StatefulWidget {
     this.dateBuilder,
     this.dateLabel,
     this.dateFlex,
+    this.dateFlexRatio,
     this.dateHeader,
     this.dateOrder,
     this.timeBuilder,
     this.timeLabel,
     this.timeFlex,
+    this.timeFlexRatio,
     this.timeHeader,
     this.overlay,
     this.effect,
@@ -62,11 +64,13 @@ class WheelDateTimeChoice extends StatefulWidget {
     this.dateBuilder,
     this.dateLabel,
     this.dateFlex,
+    this.dateFlexRatio,
     this.dateHeader,
     this.dateOrder,
     this.timeBuilder,
     this.timeLabel,
     this.timeFlex,
+    this.timeFlexRatio,
     this.timeHeader,
     this.overlay,
     this.effect,
@@ -129,6 +133,11 @@ class WheelDateTimeChoice extends StatefulWidget {
   /// Column flex ratios for date.
   final WheelDateFlex? dateFlex;
 
+  /// Relative flex weight of the date picker section compared to [timeFlexRatio].
+  ///
+  /// Defaults to 7 to allow sufficient width for full month names.
+  final int? dateFlexRatio;
+
   /// Headers for date columns.
   final WheelDateHeader? dateHeader;
 
@@ -143,6 +152,11 @@ class WheelDateTimeChoice extends StatefulWidget {
 
   /// Column flex ratios for time.
   final WheelTimeFlex? timeFlex;
+
+  /// Relative flex weight of the time picker section compared to [dateFlexRatio].
+  ///
+  /// Defaults to 4 in 12-hour mode and 3 in 24-hour mode.
+  final int? timeFlexRatio;
 
   /// Headers for time columns.
   final WheelTimeHeader? timeHeader;
@@ -287,13 +301,16 @@ class _WheelDateTimeChoiceState extends State<WheelDateTimeChoice> {
           ),
         );
 
+    final effectiveDateRatio = widget.dateFlexRatio ?? 7;
+    final effectiveTimeRatio = widget.timeFlexRatio ?? (_ctrl.use24hFormat ? 3 : 4);
+
     final content = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(flex: 5, child: dateWidget),
+        Expanded(flex: effectiveDateRatio, child: dateWidget),
         separator,
         Expanded(
-          flex: _ctrl.use24hFormat ? 3 : 4,
+          flex: effectiveTimeRatio,
           child: timeWidget,
         ),
       ],

@@ -200,10 +200,10 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
     final wheels = <Widget>[];
 
     if (hasHeader && widget.header!.hourX != null) {
-      headers.add(Flexible(flex: _flex.hour, child: widget.header!.hourX!));
+      headers.add(Expanded(flex: _flex.hour, child: widget.header!.hourX!));
     }
     wheels.add(
-      Flexible(
+      Expanded(
         flex: _flex.hour,
         child: WheelChoice<int>.raw(
           itemExtent: effectiveItemExtent,
@@ -224,10 +224,10 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
     );
 
     if (hasHeader && widget.header!.minuteX != null) {
-      headers.add(Flexible(flex: _flex.minute, child: widget.header!.minuteX!));
+      headers.add(Expanded(flex: _flex.minute, child: widget.header!.minuteX!));
     }
     wheels.add(
-      Flexible(
+      Expanded(
         flex: _flex.minute,
         child: WheelChoice<int>.raw(
           itemExtent: effectiveItemExtent,
@@ -249,10 +249,10 @@ class _WheelTimeChoiceState extends State<WheelTimeChoice> {
 
     if (!_ctrl.use24hFormat && _ctrl.period != null) {
       if (hasHeader && widget.header!.periodX != null) {
-        headers.add(Flexible(flex: _flex.period, child: widget.header!.periodX!));
+        headers.add(Expanded(flex: _flex.period, child: widget.header!.periodX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           flex: _flex.period,
           child: WheelChoice<WheelTimePeriod>.raw(
             itemExtent: effectiveItemExtent,

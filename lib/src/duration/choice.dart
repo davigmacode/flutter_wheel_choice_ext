@@ -202,10 +202,10 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
 
     if (_ctrl.showHours) {
       if (hasHeader && widget.header!.hoursX != null) {
-        headers.add(Flexible(child: widget.header!.hoursX!));
+        headers.add(Expanded(child: widget.header!.hoursX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           child: WheelChoice<int>.raw(
             controller: _ctrl.hours,
             itemExtent: effectiveItemExtent,
@@ -225,10 +225,10 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
 
     if (_ctrl.showMinutes) {
       if (hasHeader && widget.header!.minutesX != null) {
-        headers.add(Flexible(child: widget.header!.minutesX!));
+        headers.add(Expanded(child: widget.header!.minutesX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           child: WheelChoice<int>.raw(
             controller: _ctrl.minutes,
             itemExtent: effectiveItemExtent,
@@ -248,10 +248,10 @@ class _WheelDurationChoiceState extends State<WheelDurationChoice> {
 
     if (_ctrl.showSeconds) {
       if (hasHeader && widget.header!.secondsX != null) {
-        headers.add(Flexible(child: widget.header!.secondsX!));
+        headers.add(Expanded(child: widget.header!.secondsX!));
       }
       wheels.add(
-        Flexible(
+        Expanded(
           child: WheelChoice<int>.raw(
             controller: _ctrl.seconds,
             itemExtent: effectiveItemExtent,
