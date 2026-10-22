@@ -421,14 +421,48 @@ class _DurationTab extends StatefulWidget {
 }
 
 class _DurationTabState extends State<_DurationTab> {
-  late final WheelDurationController _controller;
+  late WheelDurationController _controller;
+
+  bool _showDays = false;
+  bool _showHours = true;
+  bool _showMinutes = true;
+  bool _showSeconds = true;
 
   @override
   void initState() {
     super.initState();
+    _recreateController(const Duration(hours: 1, minutes: 30, seconds: 0));
+  }
+
+  void _recreateController([Duration? current]) {
+    final val = current ?? _controller.value;
     _controller = WheelDurationController(
-      value: const Duration(hours: 1, minutes: 30, seconds: 0),
+      value: val,
+      showDays: _showDays,
+      showHours: _showHours,
+      showMinutes: _showMinutes,
+      showSeconds: _showSeconds,
     );
+  }
+
+  void _toggleMetric({bool? days, bool? hours, bool? minutes, bool? seconds}) {
+    final nextDays = days ?? _showDays;
+    final nextHours = hours ?? _showHours;
+    final nextMinutes = minutes ?? _showMinutes;
+    final nextSeconds = seconds ?? _showSeconds;
+
+    // Ensure at least one metric remains active
+    if (!nextDays && !nextHours && !nextMinutes && !nextSeconds) return;
+
+    setState(() {
+      _showDays = nextDays;
+      _showHours = nextHours;
+      _showMinutes = nextMinutes;
+      _showSeconds = nextSeconds;
+      final current = _controller.value;
+      _controller.dispose();
+      _recreateController(current);
+    });
   }
 
   @override
@@ -449,7 +483,43 @@ class _DurationTabState extends State<_DurationTab> {
           constraints: const BoxConstraints(maxWidth: 480),
           child: _ExampleCard(
             title: 'WheelDurationChoice (Timer & Duration)',
-            description: 'Customizable hours, minutes, and seconds duration selector.',
+            description: 'Customizable days, hours, minutes, and seconds with on/off toggles.',
+            controls: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Active Metrics:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    FilterChip(
+                      label: const Text('Days'),
+                      selected: _showDays,
+                      onSelected: (val) => _toggleMetric(days: val),
+                    ),
+                    FilterChip(
+                      label: const Text('Hours'),
+                      selected: _showHours,
+                      onSelected: (val) => _toggleMetric(hours: val),
+                    ),
+                    FilterChip(
+                      label: const Text('Minutes'),
+                      selected: _showMinutes,
+                      onSelected: (val) => _toggleMetric(minutes: val),
+                    ),
+                    FilterChip(
+                      label: const Text('Seconds'),
+                      selected: _showSeconds,
+                      onSelected: (val) => _toggleMetric(seconds: val),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             picker: Card(
               elevation: 0,
               color: cardColor,
@@ -457,15 +527,17 @@ class _DurationTabState extends State<_DurationTab> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                 child: WheelDurationChoice.raw(
+                  key: ValueKey('$_showDays-$_showHours-$_showMinutes-$_showSeconds'),
                   controller: _controller,
                   itemExtent: 44,
                   itemVisible: 5,
                   spacing: 12,
                   itemLabel: WheelDurationLabel.suffix(),
-                  header: const WheelDurationHeader(
-                    hours: WheelHeader(child: Text('Hours')),
-                    minutes: WheelHeader(child: Text('Mins')),
-                    seconds: WheelHeader(child: Text('Secs')),
+                  header: WheelDurationHeader(
+                    days: _showDays ? const WheelHeader(child: Text('Days')) : null,
+                    hours: _showHours ? const WheelHeader(child: Text('Hours')) : null,
+                    minutes: _showMinutes ? const WheelHeader(child: Text('Mins')) : null,
+                    seconds: _showSeconds ? const WheelHeader(child: Text('Secs')) : null,
                   ),
                   overlay: WheelOverlay.outlined(borderColor: primaryColor),
                 ),
@@ -474,11 +546,13 @@ class _DurationTabState extends State<_DurationTab> {
             result: ValueListenableBuilder<Duration>(
               valueListenable: _controller.valueListenable,
               builder: (context, dur, _) {
-                final h = dur.inHours.toString().padLeft(2, '0');
-                final m = (dur.inMinutes % 60).toString().padLeft(2, '0');
-                final s = (dur.inSeconds % 60).toString().padLeft(2, '0');
+                final parts = <String>[];
+                if (_showDays) parts.add('${dur.inDays}d');
+                if (_showHours) parts.add('${dur.inHours % 24}h');
+                if (_showMinutes) parts.add('${dur.inMinutes % 60}m');
+                if (_showSeconds) parts.add('${dur.inSeconds % 60}s');
                 return Text(
-                  'Duration: $h:$m:$s (${dur.inMinutes} total minutes)',
+                  'Duration: ${parts.isEmpty ? '0s' : parts.join(' ')} (${dur.inMinutes} total mins)',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: primaryColor,
@@ -486,17 +560,14 @@ class _DurationTabState extends State<_DurationTab> {
                 );
               },
             ),
-            code: '''// Duration / Countdown Wheel
+            code: '''// Modular Duration Wheel (Customized Units)
 WheelDurationChoice(
-  value: const Duration(hours: 1, minutes: 30, seconds: 0),
+  value: const Duration(${_showDays ? 'days: 1, ' : ''}hours: 1, minutes: 30),${_showDays ? '\n  showDays: true,' : ''}${!_showHours ? '\n  showHours: false,' : ''}${!_showMinutes ? '\n  showMinutes: false,' : ''}${!_showSeconds ? '\n  showSeconds: false,' : ''}
   itemExtent: 44,
   itemVisible: 5,
   spacing: 12,
   itemLabel: WheelDurationLabel.suffix(),
-  header: const WheelDurationHeader(
-    hours: WheelHeader(child: Text('Hours')),
-    minutes: WheelHeader(child: Text('Mins')),
-    seconds: WheelHeader(child: Text('Secs')),
+  header: const WheelDurationHeader(${_showDays ? "\n    days: WheelHeader(child: Text('Days'))," : ''}${_showHours ? "\n    hours: WheelHeader(child: Text('Hours'))," : ''}${_showMinutes ? "\n    minutes: WheelHeader(child: Text('Mins'))," : ''}${_showSeconds ? "\n    seconds: WheelHeader(child: Text('Secs'))," : ''}
   ),
   overlay: WheelOverlay.outlined(),
   onChanged: (Duration d) {
@@ -1119,7 +1190,13 @@ class _DartSyntaxHighlighter {
 
     return TextSpan(
       style: const TextStyle(
-        fontFamily: 'monospace',
+        fontFamily: 'Consolas',
+        fontFamilyFallback: [
+          'Menlo',
+          'Monaco',
+          'Courier New',
+          'monospace',
+        ],
         fontSize: 12.5,
         height: 1.45,
       ),
