@@ -11,11 +11,17 @@ class WheelCascadeChoiceFormField<T> extends FormField<List<T>> {
     super.key,
     this.controller,
     List<WheelCascadeItem<T>> items = const [],
+    WheelCascadeOptionsLoader<T>? optionsLoader,
+    int? depth,
     List<T>? initialValue,
     ValueChanged<List<T>>? onChanged,
+    List<Widget?>? header,
+    List<int>? flex,
     double? itemExtent,
     int? itemVisible,
     WheelItemLabel<T>? itemLabel,
+    WheelCascadeLoadingBuilder? loadingBuilder,
+    WheelCascadeErrorBuilder? errorBuilder,
     WidgetBuilder? overlay,
     WheelEffect? effect,
     double? spacing,
@@ -48,9 +54,35 @@ class WheelCascadeChoiceFormField<T> extends FormField<List<T>> {
             if (controller != null) {
               wheel = WheelCascadeChoice<T>.raw(
                 controller: controller,
+                header: header,
+                flex: flex,
                 itemExtent: itemExtent,
                 itemVisible: itemVisible,
                 itemLabel: itemLabel,
+                loadingBuilder: loadingBuilder,
+                errorBuilder: errorBuilder,
+                overlay: overlay,
+                effect: effect,
+                spacing: spacing,
+                physics: effectivePhysics,
+                clipBehavior: clipBehavior,
+                keyboard: enabled ? keyboard : false,
+                focusNode: focusNode,
+                haptics: enabled ? haptics : false,
+              );
+            } else if (optionsLoader != null) {
+              wheel = WheelCascadeChoice<T>.builder(
+                depth: depth ?? 0,
+                optionsLoader: optionsLoader,
+                value: field.value,
+                onChanged: enabled ? handleChanged : null,
+                header: header,
+                flex: flex,
+                itemExtent: itemExtent,
+                itemVisible: itemVisible,
+                itemLabel: itemLabel,
+                loadingBuilder: loadingBuilder,
+                errorBuilder: errorBuilder,
                 overlay: overlay,
                 effect: effect,
                 spacing: spacing,
@@ -65,9 +97,13 @@ class WheelCascadeChoiceFormField<T> extends FormField<List<T>> {
                 items: items,
                 value: field.value,
                 onChanged: enabled ? handleChanged : null,
+                header: header,
+                flex: flex,
                 itemExtent: itemExtent,
                 itemVisible: itemVisible,
                 itemLabel: itemLabel,
+                loadingBuilder: loadingBuilder,
+                errorBuilder: errorBuilder,
                 overlay: overlay,
                 effect: effect,
                 spacing: spacing,
@@ -94,11 +130,11 @@ class WheelCascadeChoiceFormField<T> extends FormField<List<T>> {
   final WheelCascadeController<T>? controller;
 
   @override
-  FormFieldState<List<T>> createState() => _WheelCascadeChoiceFormFieldState<T>();
+  FormFieldState<List<T>> createState() =>
+      _WheelCascadeChoiceFormFieldState<T>();
 }
 
-class _WheelCascadeChoiceFormFieldState<T>
-    extends FormFieldState<List<T>> {
+class _WheelCascadeChoiceFormFieldState<T> extends FormFieldState<List<T>> {
   @override
   WheelCascadeChoiceFormField<T> get widget =>
       super.widget as WheelCascadeChoiceFormField<T>;

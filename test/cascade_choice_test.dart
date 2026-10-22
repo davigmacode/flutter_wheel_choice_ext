@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wheel_choice_ext/wheel_choice_ext.dart';
@@ -66,7 +67,43 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('WheelCascadeChoice renders 3 cascading columns', (tester) async {
+    test('supports async optionsLoader and resolves downstream values', () async {
+      final completer = Completer<List<WheelCascadeItem<String>>>();
+
+      final controller = WheelCascadeController<String>(
+        depth: 2,
+        optionsLoader: (level, selected) {
+          if (level == 0) {
+            return const [
+              WheelCascadeItem(value: 'fruits', label: 'Fruits'),
+              WheelCascadeItem(value: 'veggies', label: 'Vegetables'),
+            ];
+          }
+          // Level 1 is async
+          return completer.future;
+        },
+      );
+
+      // Level 0 is loaded immediately
+      expect(controller.value[0], equals('fruits'));
+      // Level 1 is loading
+      expect(controller.isLoading(1), isTrue);
+
+      completer.complete(const [
+        WheelCascadeItem(value: 'apple', label: 'Apple'),
+        WheelCascadeItem(value: 'banana', label: 'Banana'),
+      ]);
+
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isLoading(1), isFalse);
+      expect(controller.value, equals(['fruits', 'apple']));
+
+      controller.dispose();
+    });
+
+    testWidgets('WheelCascadeChoice updates downstream options in UI on level change',
+        (tester) async {
       final controller = WheelCascadeController<String>(items: sampleTree);
 
       await tester.pumpWidget(
@@ -80,6 +117,23 @@ void main() {
       );
 
       expect(find.byType(WheelChoice<String>), findsNWidgets(3));
+      // Initially displays United States, California, Los Angeles
+      expect(find.text('United States'), findsOneWidget);
+      expect(find.text('California'), findsOneWidget);
+      expect(find.text('Los Angeles'), findsOneWidget);
+
+      // Change level 0 to ID
+      controller.controllers[0].jumpToValue('ID');
+      await tester.pumpAndSettle();
+
+      // Downstream should now show Jakarta and Jakarta Selatan
+      expect(find.text('Indonesia'), findsOneWidget);
+      expect(find.text('Jakarta'), findsOneWidget);
+      expect(find.text('Jakarta Selatan'), findsOneWidget);
+      // Old downstream choices should be gone from the widget tree
+      expect(find.text('California'), findsNothing);
+      expect(find.text('Los Angeles'), findsNothing);
+
       controller.dispose();
     });
 

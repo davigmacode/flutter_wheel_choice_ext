@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wheel_choice/wheel_choice.dart';
+import 'package:wheel_choice_ext/src/cascade/choice.dart';
+import 'package:wheel_choice_ext/src/cascade/controller.dart';
+import 'package:wheel_choice_ext/src/cascade/types.dart';
 import 'package:wheel_choice_ext/src/date/choice.dart';
 import 'package:wheel_choice_ext/src/date/controller.dart';
 import 'package:wheel_choice_ext/src/date/order.dart';
@@ -264,3 +268,57 @@ Future<Duration?> showWheelDurationPicker({
     },
   );
 }
+
+/// Convenience modal picker for cascading hierarchical choices.
+Future<List<T>?> showWheelCascadePicker<T>({
+  required BuildContext context,
+  List<WheelCascadeItem<T>> items = const [],
+  WheelCascadeOptionsLoader<T>? optionsLoader,
+  int? depth,
+  List<T>? initialValue,
+  List<Widget?>? header,
+  List<int>? flex,
+  double itemExtent = 44,
+  int itemVisible = 5,
+  double spacing = 8,
+  WheelItemLabel<T>? itemLabel,
+  String? title = 'Select Options',
+  String confirmText = 'Done',
+  String cancelText = 'Cancel',
+}) {
+  late final WheelCascadeController<T> ctrl;
+  List<T> tempVal = initialValue ?? [];
+
+  return showWheelModalSheet<List<T>>(
+    context: context,
+    title: title,
+    confirmText: confirmText,
+    cancelText: cancelText,
+    builder: (sheetContext, onSelected) {
+      ctrl = WheelCascadeController<T>(
+        items: items.isNotEmpty ? items : null,
+        optionsLoader: optionsLoader,
+        depth: depth,
+        initialValue: initialValue,
+        onChanged: (newVal) {
+          tempVal = newVal;
+          onSelected(newVal);
+        },
+      );
+      if (tempVal.isNotEmpty) {
+        onSelected(tempVal);
+      }
+
+      return WheelCascadeChoice<T>.raw(
+        controller: ctrl,
+        header: header,
+        flex: flex,
+        itemExtent: itemExtent,
+        itemVisible: itemVisible,
+        spacing: spacing,
+        itemLabel: itemLabel,
+      );
+    },
+  );
+}
+
