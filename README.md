@@ -1,3 +1,7 @@
+# wheel_choice_ext
+
+> [!IMPORTANT]
+> **Repository Moved to Monorepo**: Active development of $(System.Collections.Hashtable.Name) has migrated to the official [**davigmacode/flutter_wx**](https://github.com/davigmacode/flutter_wx) monorepo under [packages/wheel_choice_ext](https://github.com/davigmacode/flutter_wx/tree/main/packages/wheel_choice_ext).
 [![Pub Version](https://img.shields.io/pub/v/wheel_choice_ext)](https://pub.dev/packages/wheel_choice_ext) [![Pub Points](https://img.shields.io/pub/points/wheel_choice_ext)](https://pub.dev/packages/wheel_choice_ext/score) [![Tests](https://img.shields.io/badge/tests-47%20passed-success.svg)](https://github.com/davigmacode/flutter_wheel_choice_ext) ![GitHub](https://img.shields.io/github/license/davigmacode/flutter_wheel_choice_ext) [![GitHub](https://badgen.net/badge/icon/buymeacoffee?icon=buymeacoffee&color=yellow&label)](https://www.buymeacoffee.com/davigmacode) [![GitHub](https://badgen.net/badge/icon/ko-fi?icon=kofi&color=red&label)](https://ko-fi.com/davigmacode)
 
 Composite wheel-shaped picker widget suite for Flutter built on top of [wheel_choice](https://pub.dev/packages/wheel_choice). Features Date, Time, Combined DateTime, Duration/Timer, Number/Weight, Date Range, Cascading Tree pickers, and ready-to-use Modal Bottom Sheet helpers.
